@@ -1,6 +1,6 @@
-import serverApp from "../dist/server.cjs";
+const serverApp = require("../dist/server.cjs");
 
-export default function handler(req: any, res: any) {
+module.exports = function handler(req: any, res: any) {
   const app = serverApp.default || serverApp;
   return app(req, res);
-}
+};
