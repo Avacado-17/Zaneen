@@ -787,8 +787,15 @@ app.put("/api/applications/:id", async (req, res) => {
 
 // API: Get logs & security alerts
 app.get("/api/system-records", async (req, res) => {
-  const logs = await getSystemLogs();
-  res.json(logs);
+  console.log("Fetching system logs...");
+  try {
+    const logs = await getSystemLogs();
+    console.log("Logs fetched:", logs);
+    res.json(logs);
+  } catch (err) {
+    console.error("Error in /api/system-records:", err);
+    res.status(500).json({ error: "Failed to fetch logs" });
+  }
 });
 
 app.get("/api/security-events", async (req, res) => {
