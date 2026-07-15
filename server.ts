@@ -786,17 +786,17 @@ app.put("/api/applications/:id", async (req, res) => {
 });
 
 // API: Get logs & security alerts
-app.get("/api/logs", async (req, res) => {
+app.get("/api/system-records", async (req, res) => {
   const logs = await getSystemLogs();
   res.json(logs);
 });
 
-app.get("/api/alerts", async (req, res) => {
+app.get("/api/security-events", async (req, res) => {
   const alerts = await getSecurityAlerts();
   res.json(alerts);
 });
 
-app.post("/api/alerts/mitigate/:id", async (req, res) => {
+app.post("/api/security-events/mitigate/:id", async (req, res) => {
   const { id } = req.params;
   const alert = await updateSecurityAlertStatus(id, "Mitigated");
   if (alert) {

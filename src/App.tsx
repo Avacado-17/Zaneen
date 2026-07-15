@@ -74,8 +74,8 @@ export default function App() {
   const fetchLogsAndAlerts = useCallback(async () => {
     try {
       const [logsRes, alertsRes] = await Promise.all([
-        fetch("/api/logs"),
-        fetch("/api/alerts")
+        fetch("/api/system-records"),
+        fetch("/api/security-events")
       ]);
       if (logsRes.ok && logsRes.headers.get("content-type")?.includes("application/json")) {
         const data = await logsRes.json();
@@ -238,7 +238,7 @@ export default function App() {
 
   const handleMitigateAlert = async (id: string) => {
     try {
-      const res = await fetch(`/api/alerts/mitigate/${id}`, {
+      const res = await fetch(`/api/security-events/mitigate/${id}`, {
         method: "POST"
       });
       if (res.ok) {

@@ -1,3 +1,6 @@
-import app from "../server.ts";
+import serverApp from "../dist/server.cjs";
 
-export default app;
+export default function handler(req: any, res: any) {
+  const app = serverApp.default || serverApp;
+  return app(req, res);
+}
