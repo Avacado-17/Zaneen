@@ -644,11 +644,13 @@ const app = express();
 const PORT = 3000;
 
 // Run database seeding and startup logging asynchronously
-(async () => {
-  await seedDatabase();
-  await addLog("DATA_MUTATION", "INFO", "Zaneen main database initialized and seeded with default program templates.");
-  await addLog("THEME_CHANGE", "INFO", "Immersive peach-and-brown system theme loaded as active brand template.");
-})();
+if (!process.env.VERCEL) {
+  (async () => {
+    await seedDatabase();
+    await addLog("DATA_MUTATION", "INFO", "Zaneen main database initialized and seeded with default program templates.");
+    await addLog("THEME_CHANGE", "INFO", "Immersive peach-and-brown system theme loaded as active brand template.");
+  })();
+}
 
 // Body parsers
 app.use(express.json());
@@ -928,33 +930,35 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 // Simulated live security monitor
-setInterval(async () => {
-  const rand = Math.random();
-  if (rand < 0.05) { // 5% chance every 15s to spawn a dynamic alert/log for suspense and realism
-    const IPs = ["203.0.113.15", "198.51.100.82", "192.0.2.204", "185.220.101.4"];
-    const maliciousIP = IPs[Math.floor(Math.random() * IPs.length)];
-    
-    const newAlert: SecurityAlert = {
-      id: `alert-${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date().toISOString(),
-      type: "Suspicious API Activity Blocked",
-      sourceIp: maliciousIP,
-      details: `Secured request layer: query sanitization prevented unauthorized DB inspection on /api/scholarships from host ${maliciousIP}.`,
-      severity: Math.random() > 0.5 ? "High" : "Medium",
-      status: "Active"
-    };
-    
-    await addSecurityAlert(newAlert);
-    await addLog(
-      "SECURITY_ALERT", 
-      newAlert.severity === "High" ? "CRITICAL" : "WARNING", 
-      `ALARM: ${newAlert.type} on host ${newAlert.sourceIp}`,
-      newAlert.sourceIp,
-      "Threat Defense Core",
-      403
-    );
-  }
-}, 15000);
+if (!process.env.VERCEL) {
+  setInterval(async () => {
+    const rand = Math.random();
+    if (rand < 0.05) { // 5% chance every 15s to spawn a dynamic alert/log for suspense and realism
+      const IPs = ["203.0.113.15", "198.51.100.82", "192.0.2.204", "185.220.101.4"];
+      const maliciousIP = IPs[Math.floor(Math.random() * IPs.length)];
+      
+      const newAlert: SecurityAlert = {
+        id: `alert-${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date().toISOString(),
+        type: "Suspicious API Activity Blocked",
+        sourceIp: maliciousIP,
+        details: `Secured request layer: query sanitization prevented unauthorized DB inspection on /api/scholarships from host ${maliciousIP}.`,
+        severity: Math.random() > 0.5 ? "High" : "Medium",
+        status: "Active"
+      };
+      
+      await addSecurityAlert(newAlert);
+      await addLog(
+        "SECURITY_ALERT", 
+        newAlert.severity === "High" ? "CRITICAL" : "WARNING", 
+        `ALARM: ${newAlert.type} on host ${newAlert.sourceIp}`,
+        newAlert.sourceIp,
+        "Threat Defense Core",
+        403
+      );
+    }
+  }, 15000);
+}
 
 async function bootstrap() {
   // Serve static assets or mount Vite middleware in development
