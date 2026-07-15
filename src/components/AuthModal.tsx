@@ -89,8 +89,10 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, mfaEnabledG
         setError("Sign-in popup was blocked by your browser. Please allow popups for this site.");
       } else if (err.code === 'auth/popup-closed-by-user') {
         setError("Sign-in popup was closed before completing authentication.");
+      } else if (err.code === 'auth/operation-not-allowed') {
+        setError("Google Sign-In is not enabled. Go to Firebase Console > Authentication > Sign-in method, enable Google, and save.");
       } else {
-        setError(err.message || "Failed to authenticate with Google.");
+        setError(`Error (${err.code}): ${err.message || "Failed to authenticate with Google."}`);
       }
     }
   };
