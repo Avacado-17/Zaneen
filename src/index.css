@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: var(--color-primary, #5c3a21);
+  --color-background: var(--color-bg, #fbf2eb);
+  --color-surface: var(--color-surface, #fffaf6);
+  --color-surface-container: var(--color-surface-container, #faebe0);
+  --color-surface-container-low: var(--color-surface-container-low, #fbf2eb);
+  --color-surface-container-high: var(--color-surface-container-high, #f3e4d8);
+  --color-surface-container-highest: var(--color-surface-container-highest, #ebd9cb);
+  
+  --color-on-primary: var(--color-on-primary, #fbeee6);
+  --color-on-background: var(--color-font, #361e12);
+  --color-on-surface: var(--color-font, #361e12);
+  --color-on-surface-variant: var(--color-font-variant, #6b4f3e);
+  --color-outline: var(--color-outline, #c0a494);
+  --color-outline-variant: var(--color-outline-variant, #ebd5c8);
+  
+  --color-secondary: var(--color-accent, #b25329);
+  --color-secondary-container: var(--color-secondary-container, rgba(178, 83, 41, 0.1));
+  --color-on-secondary-container: var(--color-on-secondary-container, #a1441a);
+  
+  --font-sans: var(--font-family, "Space Grotesk"), "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@layer utilities {
+  /* High-fidelity futuristic cyber console card (replaces claymorphic cards with immersive thin-border slate boxes) */
+  .clay-card {
+    background-color: var(--color-surface, #0c0c0c);
+    border-radius: 0.5rem; /* sleek, sharp modern edges instead of bulbous rounded-3xl */
+    border: 1px solid var(--color-outline-variant, #1e293b);
+    box-shadow: 
+      0 10px 30px rgba(0, 0, 0, 0.6),
+      0 0 1px rgba(255, 255, 255, 0.05) inset;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .clay-card:hover {
+    border-color: var(--color-primary, #6366f1);
+    box-shadow: 
+      0 15px 35px rgba(0, 0, 0, 0.7),
+      0 0 15px rgba(99, 102, 241, 0.15);
+  }
+
+  /* Sleek, dark cyber recessed input fields */
+  .clay-input {
+    background-color: var(--color-surface-container, #080808);
+    border-radius: 0.375rem; /* rounded-md */
+    border: 1px solid var(--color-outline, #334155);
+    color: var(--color-on-surface, #f1f5f9);
+    transition: all 0.2s ease;
+  }
+  
+  .clay-input:focus {
+    outline: none;
+    border-color: var(--color-primary, #6366f1);
+    box-shadow: 
+      0 0 0 2px rgba(99, 102, 241, 0.2),
+      0 0 12px rgba(99, 102, 241, 0.3);
+  }
+
+  /* Glowing Vercel Ops style CTA button */
+  .clay-btn-primary {
+    background-color: var(--color-primary, #6366f1);
+    color: var(--color-on-primary, #ffffff);
+    border-radius: 0.375rem; /* rounded-md */
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+      0 4px 12px rgba(99, 102, 241, 0.3),
+      0 0 15px rgba(99, 102, 241, 0.15);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+
+  .clay-btn-primary:hover {
+    background-color: #4f46e5;
+    box-shadow: 
+      0 6px 16px rgba(99, 102, 241, 0.4),
+      0 0 25px rgba(99, 102, 241, 0.35);
+    transform: translateY(-1px);
+  }
+
+  .clay-btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+  }
+
+  .clay-button-primary {
+    composes: clay-btn-primary;
+  }
+
+  /* Sleek slate secondary button */
+  .clay-button-secondary {
+    background-color: var(--color-surface-container-high, #111111);
+    color: var(--color-on-surface-variant, #94a3b8);
+    border-radius: 0.375rem;
+    border: 1px solid var(--color-outline-variant, #1e293b);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .clay-button-secondary:hover {
+    background-color: var(--color-surface-container-highest, #1a1a1a);
+    color: #ffffff;
+    border-color: var(--color-primary, #6366f1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .clay-button-secondary:active {
+    transform: translateY(0);
+  }
+
+  /* Modern capsule chip with custom glow borders */
+  .clay-chip {
+    background-color: rgba(99, 102, 241, 0.1);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.05);
+    border-radius: 9999px;
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Zaneen",
+  "description": "Zaneen is a scholarship matching and management suite featuring a tactile, claymorphic design theme, custom user roles, interactive profiles, and real-time administrative logs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
