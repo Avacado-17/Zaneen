@@ -1,0 +1,139 @@
+{
+  "entities": {
+    "AppTheme": {
+      "title": "AppTheme",
+      "description": "System UI theme configuration",
+      "type": "object",
+      "properties": {
+        "primaryColor": { "type": "string" },
+        "bgColor": { "type": "string" },
+        "surfaceColor": { "type": "string" },
+        "accentColor": { "type": "string" },
+        "fontColor": { "type": "string" },
+        "fontFamily": { "type": "string" },
+        "darkMode": { "type": "boolean" }
+      },
+      "required": ["primaryColor", "bgColor", "surfaceColor", "accentColor", "fontColor", "fontFamily", "darkMode"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Administrator email registry",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string" }
+      },
+      "required": ["email", "role"]
+    },
+    "AccessRequest": {
+      "title": "AccessRequest",
+      "description": "Google Docs-style admin access request",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "requestedAt": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
+        "message": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "requestedAt", "status", "message"]
+    },
+    "Scholarship": {
+      "title": "Scholarship",
+      "description": "Scholarship grant template details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "deadline": { "type": "string" },
+        "awardAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["Active", "Draft", "Archived"] },
+        "category": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "title", "deadline", "awardAmount", "status", "category", "description"]
+    },
+    "Application": {
+      "title": "Application",
+      "description": "Student scholarship submission",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "scholarshipId": { "type": "string" },
+        "scholarshipTitle": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentEmail": { "type": "string", "format": "email" },
+        "appliedDate": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
+        "gpa": { "type": "string" },
+        "income": { "type": "string" },
+        "essay": { "type": "string" }
+      },
+      "required": ["id", "scholarshipId", "scholarshipTitle", "studentName", "studentEmail", "appliedDate", "status", "gpa", "income", "essay"]
+    },
+    "SystemLog": {
+      "title": "SystemLog",
+      "description": "System event audit trace",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "method": { "type": "string" },
+        "url": { "type": "string" },
+        "statusCode": { "type": "number" },
+        "ip": { "type": "string" },
+        "userAgent": { "type": "string" },
+        "activityType": { "type": "string", "enum": ["API_REQUEST", "THEME_CHANGE", "AUTH_EVENT", "DATA_MUTATION", "SECURITY_ALERT"] },
+        "details": { "type": "string" },
+        "severity": { "type": "string", "enum": ["INFO", "WARNING", "CRITICAL"] }
+      },
+      "required": ["id", "timestamp", "method", "url", "statusCode", "ip", "userAgent", "activityType", "details", "severity"]
+    },
+    "SecurityAlert": {
+      "title": "SecurityAlert",
+      "description": "Active intrusion or alert detection",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "type": { "type": "string" },
+        "sourceIp": { "type": "string" },
+        "details": { "type": "string" },
+        "severity": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "status": { "type": "string", "enum": ["Active", "Mitigated"] }
+      },
+      "required": ["id", "timestamp", "type", "sourceIp", "details", "severity", "status"]
+    }
+  },
+  "firestore": {
+    "theme/current": {
+      "schema": "AppTheme",
+      "description": "Active global application theme"
+    },
+    "admins": {
+      "schema": "Admin",
+      "description": "List of authorized administrator emails"
+    },
+    "accessRequests": {
+      "schema": "AccessRequest",
+      "description": "Pending and historical admin access requests"
+    },
+    "scholarships": {
+      "schema": "Scholarship",
+      "description": "Registered scholarship grant programs"
+    },
+    "applications": {
+      "schema": "Application",
+      "description": "Incoming student applications for grants"
+    },
+    "systemLogs": {
+      "schema": "SystemLog",
+      "description": "System audit logging"
+    },
+    "securityAlerts": {
+      "schema": "SecurityAlert",
+      "description": "Active and mitigated intrusion alarms"
+    }
+  }
+}

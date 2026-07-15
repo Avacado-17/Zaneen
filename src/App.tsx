@@ -38,7 +38,7 @@ export default function App() {
   const fetchScholarships = useCallback(async () => {
     try {
       const res = await fetch("/api/scholarships");
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const data = await res.json();
         setScholarships(data);
       }
@@ -50,7 +50,7 @@ export default function App() {
   const fetchApplications = useCallback(async () => {
     try {
       const res = await fetch("/api/applications");
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const data = await res.json();
         setApplications(data);
       }
@@ -62,7 +62,7 @@ export default function App() {
   const fetchTheme = useCallback(async () => {
     try {
       const res = await fetch("/api/theme");
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const data = await res.json();
         setTheme(data);
       }
@@ -77,11 +77,11 @@ export default function App() {
         fetch("/api/logs"),
         fetch("/api/alerts")
       ]);
-      if (logsRes.ok) {
+      if (logsRes.ok && logsRes.headers.get("content-type")?.includes("application/json")) {
         const data = await logsRes.json();
         setLogs(data);
       }
-      if (alertsRes.ok) {
+      if (alertsRes.ok && alertsRes.headers.get("content-type")?.includes("application/json")) {
         const data = await alertsRes.json();
         setAlerts(data);
       }
@@ -149,7 +149,7 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedTheme)
       });
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const data = await res.json();
         setTheme(data);
       }
@@ -288,19 +288,6 @@ export default function App() {
           </button>
           <button
             onClick={() => {
-              if (!userSession.user || userSession.user.role !== 'admin') {
-                // Pre-populate with owner/super admin user session directly for ease of immediate sifting by reviewer!
-                setUserSession({
-                  user: {
-                    name: "Abdullah Bin Nasir (Super Admin)",
-                    email: "abdullah.binnasir.abn@gmail.com",
-                    role: "admin",
-                    avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuDkmOHh6_tzgokYQIwRCQFyO4VsX2-SQV3efippR63wqB3fAn_TWyQXA-jAJyup0zkKdk4n9hyLmv3JmUxKpdqGszUyI93VcVbDg-CLSzrhYyhXgGduPWynG6urf5cM7OTN7vGihoi2eloj7GPfeIPAPA_GVR6xvrW9iwEfGMFvVOtXCLIT8CiXHd4PKI1B7MBixcXF8AbZNyqGGlYF73Ch6ehkFCsAjXqD5Rkzh5avYNbkCGGveOf1rhN91KI8jTocut3hV7QZAZ0"
-                  },
-                  mfaVerified: true,
-                  needsMfa: false
-                });
-              }
               setCurrentView('admin');
             }}
             className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${

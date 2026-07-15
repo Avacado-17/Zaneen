@@ -82,7 +82,7 @@ export default function AdminPortal({
   const fetchPermissions = async () => {
     try {
       const res = await fetch("/api/auth/admins");
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const data = await res.json();
         setAdminsList(data.admins || []);
         setAccessRequests(data.accessRequests || []);
@@ -107,15 +107,17 @@ export default function AdminPortal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const data = await res.json();
         setAdminsList(data.admins);
         setAccessRequests(data.accessRequests);
         setPermissionSuccess(`Successfully promoted ${email} to Administrator!`);
         setInviteEmail("");
-      } else {
+      } else if (res.headers.get("content-type")?.includes("application/json")) {
         const data = await res.json();
         setPermissionError(data.error || "Failed to promote user.");
+      } else {
+        setPermissionError("Server returned invalid response format.");
       }
     } catch (err) {
       setPermissionError("Network error promoting user.");
@@ -131,14 +133,16 @@ export default function AdminPortal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const data = await res.json();
         setAdminsList(data.admins);
         setAccessRequests(data.accessRequests);
         setPermissionSuccess(`Successfully revoked administrator permissions for ${email}.`);
-      } else {
+      } else if (res.headers.get("content-type")?.includes("application/json")) {
         const data = await res.json();
         setPermissionError(data.error || "Failed to revoke permissions.");
+      } else {
+        setPermissionError("Server returned invalid response format.");
       }
     } catch (err) {
       setPermissionError("Network error revoking permissions.");
@@ -154,13 +158,15 @@ export default function AdminPortal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id })
       });
-      if (res.ok) {
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
         const data = await res.json();
         setAccessRequests(data.accessRequests);
         setPermissionSuccess("Access request rejected successfully.");
-      } else {
+      } else if (res.headers.get("content-type")?.includes("application/json")) {
         const data = await res.json();
         setPermissionError(data.error || "Failed to reject request.");
+      } else {
+        setPermissionError("Server returned invalid response format.");
       }
     } catch (err) {
       setPermissionError("Network error rejecting request.");

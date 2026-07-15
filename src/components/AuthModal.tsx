@@ -24,15 +24,6 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, mfaEnabledG
   const [requestEmail, setRequestEmail] = useState('');
   const [requestMessage, setRequestMessage] = useState('');
 
-  // Auto-set default email based on selected role
-  useEffect(() => {
-    if (role === 'admin') {
-      setEmail('abdullah.binnasir.abn@gmail.com');
-    } else {
-      setEmail('student@gmail.com');
-    }
-  }, [role]);
-
   if (!isOpen) return null;
 
   const handleLogin = async (e?: React.FormEvent) => {
@@ -213,15 +204,15 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, mfaEnabledG
               </button>
             </div>
 
-            <form onSubmit={handleLogin} className="flex flex-col gap-4 text-left">
+            <form onSubmit={handleLogin} className="flex flex-col gap-4 text-left font-sans">
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-on-surface-variant">Email Address</label>
                 <input
                   type="email"
-                  placeholder={role === 'admin' ? 'abdullah.binnasir.abn@gmail.com' : 'student@gmail.com'}
+                  placeholder={role === 'admin' ? 'admin@example.com' : 'student@example.com'}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="clay-input rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-surface-container-low border-none text-on-surface"
+                  className="clay-input rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-surface-container-low border-none text-on-surface font-semibold"
                   required
                 />
               </div>
