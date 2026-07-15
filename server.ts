@@ -299,6 +299,7 @@ async function updateTheme(newTheme: Partial<AppTheme>): Promise<AppTheme> {
 
 // Admins Persistence Helpers
 async function getAdmins(): Promise<string[]> {
+  console.log("Fetching admins from DB:", !!db);
   if (!db) return admins;
   try {
     const querySnapshot = await getDocs(collection(db, "admins"));
@@ -307,6 +308,7 @@ async function getAdmins(): Promise<string[]> {
       const data = doc.data();
       if (data.email) list.push(data.email);
     });
+    console.log("Admins fetched:", list);
     if (list.length === 0) return admins;
     return list;
   } catch (err) {
@@ -641,7 +643,9 @@ async function addLog(
 }
 
 const app = express();
+console.log("App initialized");
 const PORT = 3000;
+console.log("PORT:", PORT);
 
 // Run database seeding and startup logging asynchronously
 if (!process.env.VERCEL) {
@@ -799,8 +803,15 @@ app.get("/api/system-records", async (req, res) => {
 });
 
 app.get("/api/security-events", async (req, res) => {
-  const alerts = await getSecurityAlerts();
-  res.json(alerts);
+  console.log("Fetching security events...");
+  try {
+    const alerts = await getSecurityAlerts();
+    console.log("Security events fetched:", alerts);
+    res.json(alerts);
+  } catch (err) {
+    console.error("Error in /api/security-events:", err);
+    res.status(500).json({ error: "Failed to fetch security events" });
+  }
 });
 
 app.post("/api/security-events/mitigate/:id", async (req, res) => {
@@ -908,32 +919,39 @@ app.post("/api/auth/revoke", async (req, res) => {
 });
 
 app.post("/api/auth/login", async (req, res) => {
+  console.log("Login request body:", req.body);
   const { email, name, role } = req.body;
   if (!email) {
     return res.status(400).json({ error: "Email is required" });
   }
   const userEmail = email.trim().toLowerCase();
-  const adminList = await getAdmins();
-  const isSystemAdmin = adminList.includes(userEmail);
+  
+  try {
+    const adminList = await getAdmins();
+    const isSystemAdmin = adminList.includes(userEmail);
 
-  if (role === 'admin' && !isSystemAdmin) {
-    return res.status(403).json({
-      error: "forbidden",
-      message: "You do not have permission to access the Zaneen Admin Portal. Request access from the administrator."
-    });
-  }
-
-  res.json({
-    success: true,
-    user: {
-      name: name || (isSystemAdmin ? "Administrator" : "Student User"),
-      email: userEmail,
-      role: isSystemAdmin ? "admin" : "student",
-      avatar: isSystemAdmin
-        ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDkmOHh6_tzgokYQIwRCQFyO4VsX2-SQV3efippR63wqB3fAn_TWyQXA-jAJyup0zkKdk4n9hyLmv3JmUxKpdqGszUyI93VcVbDg-CLSzrhYyhXgGduPWynG6urf5cM7OTN7vGihoi2eloj7GPfeIPAPA_GVR6xvrW9iwEfGMFvVOtXCLIT8CiXHd4PKI1B7MBixcXF8AbZNyqGGlYF73Ch6ehkFCsAjXqD5Rkzh5avYNbkCGGveOf1rhN91KI8jTocut3hV7QZAZ0'
-        : undefined
+    if (role === 'admin' && !isSystemAdmin) {
+      return res.status(403).json({
+        error: "forbidden",
+        message: "You do not have permission to access the Zaneen Admin Portal. Request access from the administrator."
+      });
     }
-  });
+
+    res.json({
+      success: true,
+      user: {
+        name: name || (isSystemAdmin ? "Administrator" : "Student User"),
+        email: userEmail,
+        role: isSystemAdmin ? "admin" : "student",
+        avatar: isSystemAdmin
+          ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDkmOHh6_tzgokYQIwRCQFyO4VsX2-SQV3efippR63wqB3fAn_TWyQXA-jAJyup0zkKdk4n9hyLmv3JmUxKpdqGszUyI93VcVbDg-CLSzrhYyhXgGduPWynG6urf5cM7OTN7vGihoi2eloj7GPfeIPAPA_GVR6xvrW9iwEfGMFvVOtXCLIT8CiXHd4PKI1B7MBixcXF8AbZNyqGGlYF73Ch6ehkFCsAjXqD5Rkzh5avYNbkCGGveOf1rhN91KI8jTocut3hV7QZAZ0'
+          : undefined
+      }
+    });
+  } catch (err) {
+    console.error("Error in login route:", err);
+    return res.status(500).json({ error: "Internal server error during login" });
+  }
 });
 
 // Simulated live security monitor
@@ -968,24 +986,25 @@ if (!process.env.VERCEL) {
 }
 
 async function bootstrap() {
-  if (process.env.NODE_ENV !== "production") {
-    const viteModule = "vite";
-    const { createServer: createViteServer } = await import(/* @vite-ignore */ viteModule);
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
+  // if (process.env.NODE_ENV !== "production") {
+  //   const viteModule = "vite";
+  //   const { createServer: createViteServer } = await import(/* @vite-ignore */ viteModule);
+  //   const vite = await createViteServer({
+  //     server: { middlewareMode: true },
+  //     appType: "spa",
+  //   });
+  //   app.use(vite.middlewares);
+  // } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
-  }
+  // }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  console.log("Environment variables:", process.env);
+app.listen(3000, "0.0.0.0", () => {
+    console.log(`Server running on http://localhost:3000`);
   });
 }
 
