@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
-import { createServer as createViteServer } from "vite";
 import { Scholarship, Application, SystemLog, SecurityAlert, AppTheme, AccessRequest } from "./src/types.js";
 import { initializeApp } from "firebase/app";
 import { 
@@ -642,7 +641,7 @@ async function addLog(
 }
 
 const app = express();
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = 3000;
 
 // Run database seeding and startup logging asynchronously
 (async () => {
@@ -960,6 +959,7 @@ setInterval(async () => {
 async function bootstrap() {
   // Serve static assets or mount Vite middleware in development
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

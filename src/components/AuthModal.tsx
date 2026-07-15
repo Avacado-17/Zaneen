@@ -54,7 +54,14 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, mfaEnabledG
       setLoading(false);
 
       if (response.ok) {
-        const data = await response.json();
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error("Invalid response from server.");
+        }
+        
         if (mfaEnabledGlobal) {
           setStep('mfa');
           setEmail(targetEmail);
@@ -70,7 +77,14 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, mfaEnabledG
           onClose();
         }
       } else {
-        const data = await response.json();
+        const text = await response.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          throw new Error(`Server error (${response.status}): ${text.substring(0, 50)}...`);
+        }
+        
         if (response.status === 403) {
           setRequestEmail(targetEmail);
           setRequestName(targetName);
