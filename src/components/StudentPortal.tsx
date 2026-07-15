@@ -151,8 +151,17 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
           )}
           {userSession.user ? (
             <div className="flex items-center gap-3 bg-surface-container-high px-4 py-2 rounded-xl border border-outline-variant">
-              <div className="w-8 h-8 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center text-sm border border-primary">
-                {userSession.user.name.charAt(0)}
+              <div className="w-8 h-8 rounded-full bg-primary/20 text-primary font-bold flex items-center justify-center text-sm border border-primary overflow-hidden">
+                {userSession.user.avatar ? (
+                  <img 
+                    src={userSession.user.avatar} 
+                    alt={userSession.user.name} 
+                    className="w-full h-full object-cover" 
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  userSession.user.name.charAt(0)
+                )}
               </div>
               <div className="hidden sm:flex flex-col text-left">
                 <span className="text-xs font-bold text-on-surface truncate max-w-[120px]">{userSession.user.name}</span>

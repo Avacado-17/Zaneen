@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { Shield, Key, Loader2, Check, X } from "lucide-react";
+import { Shield, Key, Loader2, Check, X, LogIn } from "lucide-react";
 import { UserSession } from "../types.js";
+import { auth } from "../lib/firebase.js";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -13,7 +15,6 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose, onLoginSuccess, mfaEnabledGlobal }: AuthModalProps) {
   const [role, setRole] = useState<'student' | 'admin'>('student');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [step, setStep] = useState<'credentials' | 'mfa' | 'requestAccess' | 'requestSent'>('credentials');
   const [mfaCode, setMfaCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,24 +27,28 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, mfaEnabledG
 
   if (!isOpen) return null;
 
-  const handleLogin = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleGoogleSignIn = async () => {
     setLoading(true);
     setError('');
-    
-    // Simulate server-side latency
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const targetEmail = email.trim();
-    const targetName = targetEmail === 'abdullah.binnasir.abn@gmail.com' 
-      ? 'Abdullah Bin Nasir' 
-      : targetEmail.split('@')[0].split('.').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-
     try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      if (!user.email) {
+        throw new Error("No email associated with this Google Account.");
+      }
+
+      const targetEmail = user.email.trim().toLowerCase();
+      const targetName = user.displayName || user.email.split('@')[0];
+      const targetAvatar = user.photoURL || undefined;
+
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: targetEmail, name: targetName, role })
+        body: JSON.stringify({ email: targetEmail, name: targetName, role, avatar: targetAvatar })
       });
 
       setLoading(false);
@@ -55,7 +60,10 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, mfaEnabledG
           setEmail(targetEmail);
         } else {
           onLoginSuccess({
-            user: data.user,
+            user: {
+              ...data.user,
+              avatar: targetAvatar || data.user.avatar
+            },
             mfaVerified: false,
             needsMfa: false
           });
@@ -72,10 +80,16 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, mfaEnabledG
           setError(data.message || data.error || "Authentication failed.");
         }
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("Google login error:", err);
       setLoading(false);
-      setError("Server connection error during authentication.");
+      if (err.code === 'auth/popup-blocked') {
+        setError("Sign-in popup was blocked by your browser. Please allow popups for this site.");
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        setError("Sign-in popup was closed before completing authentication.");
+      } else {
+        setError(err.message || "Failed to authenticate with Google.");
+      }
     }
   };
 
@@ -204,45 +218,28 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, mfaEnabledG
               </button>
             </div>
 
-            <form onSubmit={handleLogin} className="flex flex-col gap-4 text-left font-sans">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-on-surface-variant">Email Address</label>
-                <input
-                  type="email"
-                  placeholder={role === 'admin' ? 'admin@example.com' : 'student@example.com'}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="clay-input rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-surface-container-low border-none text-on-surface font-semibold"
-                  required
-                />
-              </div>
-              
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-on-surface-variant">Password</label>
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="clay-input rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary bg-surface-container-low border-none text-on-surface"
-                />
-              </div>
-
-              {error && <p className="text-xs text-error font-medium">{error}</p>}
+            <div className="flex flex-col gap-4 text-center font-sans">
+              <p className="text-xs text-on-surface-variant max-w-sm mx-auto mb-2 leading-relaxed">
+                Click below to securely sign in using your Google account. 
+                {role === 'admin' ? " Ensure you use an authorized administrator email." : ""}
+              </p>
 
               <button
-                type="submit"
+                type="button"
+                onClick={handleGoogleSignIn}
                 disabled={loading}
-                className="mt-2 w-full py-3 clay-btn-primary font-bold text-sm text-center flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-surface hover:bg-surface-container border border-outline-variant rounded-xl font-bold text-sm text-on-surface hover:text-primary hover:border-primary text-center flex items-center justify-center gap-3 transition-all cursor-pointer shadow-sm hover:shadow-md disabled:opacity-50"
               >
                 {loading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
                 ) : (
-                  <Key className="w-4 h-4" />
+                  <LogIn className="w-5 h-5 text-primary" />
                 )}
-                <span>Sign In to Zaneen</span>
+                <span>Sign In with Google</span>
               </button>
-            </form>
+
+              {error && <p className="text-xs text-error font-medium mt-1">{error}</p>}
+            </div>
           </div>
         ) : step === 'requestAccess' ? (
           <div>

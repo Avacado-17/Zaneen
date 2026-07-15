@@ -328,6 +328,7 @@ export default function App() {
           onToggleMfa={() => setMfaEnabledGlobal(!mfaEnabledGlobal)}
           onLogout={handleLogout}
           onBackToStudent={() => setCurrentView('student')}
+          userSession={userSession}
         />
       ) : (
         <div className="flex flex-col items-center justify-center min-h-screen text-on-background bg-background p-8 font-sans">

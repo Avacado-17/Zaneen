@@ -6,7 +6,7 @@ import {
   TrendingUp, CheckCircle, XCircle, ShieldAlert, FileCode, RefreshCw, Sparkles,
   Lock, Trash2, Eye, Sun, Moon, Volume2, Key, ListFilter, Sliders, Check, EyeOff, LayoutGrid
 } from "lucide-react";
-import { Scholarship, Application, SystemLog, SecurityAlert, AppTheme } from "../types.js";
+import { Scholarship, Application, SystemLog, SecurityAlert, AppTheme, UserSession } from "../types.js";
 import ZaneenLogo from "./ZaneenLogo.tsx";
 
 interface AdminPortalProps {
@@ -25,6 +25,7 @@ interface AdminPortalProps {
   onToggleMfa: () => void;
   onLogout: () => void;
   onBackToStudent?: () => void;
+  userSession?: UserSession;
 }
 
 export default function AdminPortal({
@@ -42,7 +43,8 @@ export default function AdminPortal({
   mfaEnabled,
   onToggleMfa,
   onLogout,
-  onBackToStudent
+  onBackToStudent,
+  userSession
 }: AdminPortalProps) {
   // Navigation tabs
   const [activeTab, setActiveTab] = useState<'scholarships' | 'applications' | 'analytics' | 'settings'>('scholarships');
@@ -288,16 +290,25 @@ export default function AdminPortal({
       <nav className="hidden md:flex flex-col gap-3 p-6 bg-surface border-r border-outline-variant h-[calc(100vh-32px)] w-64 m-4 rounded-2xl flex-shrink-0 clay-card z-20">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8 px-2 pt-2 text-left">
-          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-primary shadow-sm bg-surface-container">
-            <img 
-              alt="Admin Profile" 
-              className="w-full h-full object-cover" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkmOHh6_tzgokYQIwRCQFyO4VsX2-SQV3efippR63wqB3fAn_TWyQXA-jAJyup0zkKdk4n9hyLmv3JmUxKpdqGszUyI93VcVbDg-CLSzrhYyhXgGduPWynG6urf5cM7OTN7vGihoi2eloj7GPfeIPAPA_GVR6xvrW9iwEfGMFvVOtXCLIT8CiXHd4PKI1B7MBixcXF8AbZNyqGGlYF73Ch6ehkFCsAjXqD5Rkzh5avYNbkCGGveOf1rhN91KI8jTocut3hV7QZAZ0"
-            />
+          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 border-primary shadow-sm bg-surface-container flex items-center justify-center font-bold text-lg text-primary">
+            {userSession?.user?.avatar ? (
+              <img 
+                alt={userSession.user.name || "Admin Profile"} 
+                className="w-full h-full object-cover" 
+                src={userSession.user.avatar}
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              userSession?.user?.name ? userSession.user.name.charAt(0) : "A"
+            )}
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-display font-bold text-sm text-primary truncate">Admin Portal</span>
-            <span className="text-[10px] font-mono text-on-surface-variant truncate">Management Suite</span>
+            <span className="font-display font-bold text-sm text-primary truncate">
+              {userSession?.user?.name || "Admin Portal"}
+            </span>
+            <span className="text-[10px] font-mono text-on-surface-variant truncate">
+              {userSession?.user?.email || "Management Suite"}
+            </span>
           </div>
         </div>
 
