@@ -83,7 +83,9 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, mfaEnabledG
     } catch (err: any) {
       console.error("Google login error:", err);
       setLoading(false);
-      if (err.code === 'auth/popup-blocked') {
+      if (err.code === 'auth/unauthorized-domain') {
+        setError("This domain is not authorized. Please add it in Firebase Console > Authentication > Settings > Authorized domains.");
+      } else if (err.code === 'auth/popup-blocked') {
         setError("Sign-in popup was blocked by your browser. Please allow popups for this site.");
       } else if (err.code === 'auth/popup-closed-by-user') {
         setError("Sign-in popup was closed before completing authentication.");
