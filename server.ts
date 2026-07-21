@@ -185,6 +185,23 @@ let pageBlocks: import('./src/types.js').PageBlock[] = [
 
 // Firebase Dynamic Initialization
 let db: any = null;
+let isQuotaExceeded = false;
+
+function isQuotaError(err: any): boolean {
+  const msg = String(err?.message || err || "");
+  return msg.includes("Quota limit exceeded") || msg.includes("quota") || msg.includes("RESOURCE_EXHAUSTED");
+}
+
+function handleDbError(operationName: string, err: any) {
+  if (isQuotaError(err)) {
+    if (!isQuotaExceeded) {
+      console.warn(`[Firestore Quota Exceeded] ${operationName}: Free daily read/write quota limit reached. Falling back to local in-memory storage.`);
+      isQuotaExceeded = true;
+    }
+  } else {
+    console.error(`Error in ${operationName}:`, err);
+  }
+}
 
 try {
   let config: any = null;
@@ -224,7 +241,7 @@ try {
 
 // Automatic Seeding of Firestore DB
 async function seedDatabase() {
-  if (!db) return;
+  if (!db || isQuotaExceeded) return;
   try {
     // 1. Theme
     const themeRef = doc(db, "theme", "current");
@@ -288,13 +305,13 @@ async function seedDatabase() {
       console.log("Seeded page blocks to Firestore.");
     }
   } catch (error) {
-    console.error("Error seeding Firestore database:", error);
+    handleDbError("seedDatabase", error);
   }
 }
 
 // Theme Persistence Helpers
 async function getTheme(): Promise<AppTheme> {
-  if (!db) return currentTheme;
+  if (!db || isQuotaExceeded) return currentTheme;
   try {
     const docRef = doc(db, "theme", "current");
     const docSnap = await getDoc(docRef);
@@ -305,27 +322,26 @@ async function getTheme(): Promise<AppTheme> {
       return currentTheme;
     }
   } catch (err) {
-    console.error("Error reading theme from Firestore:", err);
+    handleDbError("getTheme", err);
     return currentTheme;
   }
 }
 
 async function updateTheme(newTheme: Partial<AppTheme>): Promise<AppTheme> {
   currentTheme = { ...currentTheme, ...newTheme };
-  if (!db) return currentTheme;
+  if (!db || isQuotaExceeded) return currentTheme;
   try {
     const docRef = doc(db, "theme", "current");
     await setDoc(docRef, currentTheme, { merge: true });
   } catch (err) {
-    console.error("Error updating theme in Firestore:", err);
+    handleDbError("updateTheme", err);
   }
   return currentTheme;
 }
 
 // Admins Persistence Helpers
 async function getAdmins(): Promise<string[]> {
-  console.log("Fetching admins from DB:", !!db);
-  if (!db) return admins;
+  if (!db || isQuotaExceeded) return admins;
   try {
     const querySnapshot = await getDocs(collection(db, "admins"));
     const list: string[] = [];
@@ -333,11 +349,10 @@ async function getAdmins(): Promise<string[]> {
       const data = doc.data();
       if (data.email) list.push(data.email);
     });
-    console.log("Admins fetched:", list);
     if (list.length === 0) return admins;
     return list;
   } catch (err) {
-    console.error("Error getting admins:", err);
+    handleDbError("getAdmins", err);
     return admins;
   }
 }
@@ -347,11 +362,11 @@ async function addAdmin(email: string): Promise<void> {
   if (!admins.includes(cleanEmail)) {
     admins.push(cleanEmail);
   }
-  if (!db) return;
+  if (!db || isQuotaExceeded) return;
   try {
     await setDoc(doc(db, "admins", cleanEmail), { email: cleanEmail, role: "admin" });
   } catch (err) {
-    console.error("Error adding admin:", err);
+    handleDbError("addAdmin", err);
   }
 }
 
@@ -361,17 +376,17 @@ async function removeAdmin(email: string): Promise<void> {
   if (idx !== -1) {
     admins.splice(idx, 1);
   }
-  if (!db) return;
+  if (!db || isQuotaExceeded) return;
   try {
     await deleteDoc(doc(db, "admins", cleanEmail));
   } catch (err) {
-    console.error("Error removing admin:", err);
+    if (!db || isQuotaExceeded) return;
   }
 }
 
 // Access Requests Helpers
 async function getAccessRequests(): Promise<AccessRequest[]> {
-  if (!db) return accessRequests;
+  if (!db || isQuotaExceeded) return accessRequests;
   try {
     const querySnapshot = await getDocs(collection(db, "accessRequests"));
     const list: AccessRequest[] = [];
@@ -381,18 +396,18 @@ async function getAccessRequests(): Promise<AccessRequest[]> {
     if (list.length === 0) return accessRequests;
     return list.sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime());
   } catch (err) {
-    console.error("Error getting access requests:", err);
+    handleDbError("getAccessRequests", err);
     return accessRequests;
   }
 }
 
 async function addAccessRequest(req: AccessRequest): Promise<void> {
   accessRequests.unshift(req);
-  if (!db) return;
+  if (!db || isQuotaExceeded) return;
   try {
     await setDoc(doc(db, "accessRequests", req.id), req);
   } catch (err) {
-    console.error("Error adding access request:", err);
+    handleDbError("addAccessRequest", err);
   }
 }
 
@@ -401,11 +416,11 @@ async function updateAccessRequestStatus(id: string, status: 'Approved' | 'Rejec
   if (req) {
     req.status = status;
   }
-  if (!db) return;
+  if (!db || isQuotaExceeded) return;
   try {
     await updateDoc(doc(db, "accessRequests", id), { status });
   } catch (err) {
-    console.error("Error updating access request status:", err);
+    handleDbError("updateAccessRequestStatus", err);
   }
 }
 
@@ -416,7 +431,7 @@ async function approveAccessRequestsForEmail(email: string): Promise<void> {
       r.status = 'Approved';
     }
   });
-  if (!db) return;
+  if (!db || isQuotaExceeded) return;
   try {
     const q = query(collection(db, "accessRequests"), where("email", "==", cleanEmail));
     const snapshot = await getDocs(q);
@@ -424,7 +439,7 @@ async function approveAccessRequestsForEmail(email: string): Promise<void> {
       await updateDoc(doc(db, "accessRequests", d.id), { status: "Approved" });
     }
   } catch (err) {
-    console.error("Error approving requests for email:", err);
+    handleDbError("approveAccessRequestsForEmail", err);
   }
 }
 
@@ -435,7 +450,7 @@ async function rejectAccessRequestsForEmail(email: string): Promise<void> {
       r.status = 'Rejected';
     }
   });
-  if (!db) return;
+  if (!db || isQuotaExceeded) return;
   try {
     const q = query(collection(db, "accessRequests"), where("email", "==", cleanEmail));
     const snapshot = await getDocs(q);
@@ -443,13 +458,13 @@ async function rejectAccessRequestsForEmail(email: string): Promise<void> {
       await updateDoc(doc(db, "accessRequests", d.id), { status: "Rejected" });
     }
   } catch (err) {
-    console.error("Error rejecting requests for email:", err);
+    handleDbError("approveAccessRequestsForEmail", err);
   }
 }
 
 // Scholarships Helpers
 async function getScholarships(): Promise<Scholarship[]> {
-  if (!db) return scholarships;
+  if (!db || isQuotaExceeded) return scholarships;
   try {
     const querySnapshot = await getDocs(collection(db, "scholarships"));
     const list: Scholarship[] = [];
@@ -459,18 +474,18 @@ async function getScholarships(): Promise<Scholarship[]> {
     if (list.length === 0) return scholarships;
     return list;
   } catch (err) {
-    console.error("Error getting scholarships:", err);
+    handleDbError("getScholarships", err);
     return scholarships;
   }
 }
 
 async function addScholarship(item: Scholarship): Promise<void> {
   scholarships.unshift(item);
-  if (!db) return;
+  if (!db || isQuotaExceeded) return;
   try {
     await setDoc(doc(db, "scholarships", item.id), item);
   } catch (err) {
-    console.error("Error adding scholarship:", err);
+    handleDbError("addScholarship", err);
   }
 }
 
@@ -479,7 +494,7 @@ async function updateScholarship(id: string, data: Partial<Scholarship>): Promis
   if (idx !== -1) {
     scholarships[idx] = { ...scholarships[idx], ...data };
   }
-  if (!db) return idx !== -1 ? scholarships[idx] : null;
+  if (!db || isQuotaExceeded) return idx !== -1 ? scholarships[idx] : null;
   try {
     const docRef = doc(db, "scholarships", id);
     const docSnap = await getDoc(docRef);
@@ -489,7 +504,7 @@ async function updateScholarship(id: string, data: Partial<Scholarship>): Promis
       return updated.data() as Scholarship;
     }
   } catch (err) {
-    console.error("Error updating scholarship:", err);
+    handleDbError("updateScholarship", err);
   }
   return idx !== -1 ? scholarships[idx] : null;
 }
@@ -501,7 +516,7 @@ async function removeScholarship(id: string): Promise<Scholarship | null> {
     removed = scholarships[idx];
     scholarships.splice(idx, 1);
   }
-  if (!db) return removed;
+  if (!db || isQuotaExceeded) return removed;
   try {
     const docRef = doc(db, "scholarships", id);
     const docSnap = await getDoc(docRef);
@@ -511,14 +526,14 @@ async function removeScholarship(id: string): Promise<Scholarship | null> {
       return data;
     }
   } catch (err) {
-    console.error("Error deleting scholarship:", err);
+    handleDbError("removeScholarship", err);
   }
   return removed;
 }
 
 // Applications Helpers
 async function getApplications(): Promise<Application[]> {
-  if (!db) return applications;
+  if (!db || isQuotaExceeded) return applications;
   try {
     const querySnapshot = await getDocs(collection(db, "applications"));
     const list: Application[] = [];
@@ -528,18 +543,18 @@ async function getApplications(): Promise<Application[]> {
     if (list.length === 0) return applications;
     return list;
   } catch (err) {
-    console.error("Error getting applications:", err);
+    handleDbError("getApplications", err);
     return applications;
   }
 }
 
 async function addApplication(appItem: Application): Promise<void> {
   applications.unshift(appItem);
-  if (!db) return;
+  if (!db || isQuotaExceeded) return;
   try {
     await setDoc(doc(db, "applications", appItem.id), appItem);
   } catch (err) {
-    console.error("Error adding application:", err);
+    handleDbError("addApplication", err);
   }
 }
 
@@ -548,7 +563,7 @@ async function updateApplicationStatus(id: string, status: 'Approved' | 'Rejecte
   if (idx !== -1) {
     applications[idx].status = status;
   }
-  if (!db) return idx !== -1 ? applications[idx] : null;
+  if (!db || isQuotaExceeded) return idx !== -1 ? applications[idx] : null;
   try {
     const docRef = doc(db, "applications", id);
     const docSnap = await getDoc(docRef);
@@ -558,14 +573,14 @@ async function updateApplicationStatus(id: string, status: 'Approved' | 'Rejecte
       return updated.data() as Application;
     }
   } catch (err) {
-    console.error("Error updating application status:", err);
+    handleDbError("updateApplicationStatus", err);
   }
   return idx !== -1 ? applications[idx] : null;
 }
 
 // System Logs Helpers
 async function getSystemLogs(): Promise<SystemLog[]> {
-  if (!db) return systemLogs;
+  if (!db || isQuotaExceeded) return systemLogs;
   try {
     const q = query(collection(db, "systemLogs"), orderBy("timestamp", "desc"), limit(100));
     const querySnapshot = await getDocs(q);
@@ -575,7 +590,7 @@ async function getSystemLogs(): Promise<SystemLog[]> {
     });
     return list;
   } catch (err) {
-    console.error("Error getting system logs:", err);
+    handleDbError("getSystemLogs", err);
     return systemLogs;
   }
 }
@@ -585,17 +600,17 @@ async function addSystemLog(log: SystemLog): Promise<void> {
   if (systemLogs.length > 100) {
     systemLogs.pop();
   }
-  if (!db) return;
+  if (!db || isQuotaExceeded) return;
   try {
     await setDoc(doc(db, "systemLogs", log.id), log);
   } catch (err) {
-    console.error("Error adding system log:", err);
+    handleDbError("addSystemLog", err);
   }
 }
 
 // Security Alerts Helpers
 async function getSecurityAlerts(): Promise<SecurityAlert[]> {
-  if (!db) return securityAlerts;
+  if (!db || isQuotaExceeded) return securityAlerts;
   try {
     const q = query(collection(db, "securityAlerts"), orderBy("timestamp", "desc"), limit(100));
     const querySnapshot = await getDocs(q);
@@ -606,18 +621,18 @@ async function getSecurityAlerts(): Promise<SecurityAlert[]> {
     if (list.length === 0) return securityAlerts;
     return list;
   } catch (err) {
-    console.error("Error getting security alerts:", err);
+    handleDbError("getSecurityAlerts", err);
     return securityAlerts;
   }
 }
 
 async function addSecurityAlert(alert: SecurityAlert): Promise<void> {
   securityAlerts.unshift(alert);
-  if (!db) return;
+  if (!db || isQuotaExceeded) return;
   try {
     await setDoc(doc(db, "securityAlerts", alert.id), alert);
   } catch (err) {
-    console.error("Error adding security alert:", err);
+    handleDbError("addSecurityAlert", err);
   }
 }
 
@@ -626,7 +641,7 @@ async function updateSecurityAlertStatus(id: string, status: 'Active' | 'Mitigat
   if (alert) {
     alert.status = status;
   }
-  if (!db) return alert || null;
+  if (!db || isQuotaExceeded) return alert || null;
   try {
     const docRef = doc(db, "securityAlerts", id);
     const docSnap = await getDoc(docRef);
@@ -636,14 +651,14 @@ async function updateSecurityAlertStatus(id: string, status: 'Active' | 'Mitigat
       return updated.data() as SecurityAlert;
     }
   } catch (err) {
-    console.error("Error updating security alert status:", err);
+    handleDbError("updateSecurityAlertStatus", err);
   }
   return alert || null;
 }
 
 // Page Blocks Helpers
 async function getPageBlocks(): Promise<import('./src/types.js').PageBlock[]> {
-  if (!db) return pageBlocks;
+  if (!db || isQuotaExceeded) return pageBlocks;
   try {
     const q = query(collection(db, "pageBlocks"), orderBy("order", "asc"));
     const querySnapshot = await getDocs(q);
@@ -654,21 +669,21 @@ async function getPageBlocks(): Promise<import('./src/types.js').PageBlock[]> {
     if (list.length === 0) return pageBlocks;
     return list;
   } catch (err) {
-    console.error("Error getting page blocks:", err);
+    handleDbError("getPageBlocks", err);
     return pageBlocks;
   }
 }
 
 async function setPageBlocks(blocks: import('./src/types.js').PageBlock[]): Promise<void> {
   pageBlocks = blocks;
-  if (!db) return;
+  if (!db || isQuotaExceeded) return;
   try {
     // Basic sync: write all
     for (const b of blocks) {
       await setDoc(doc(db, "pageBlocks", b.id), b);
     }
   } catch (err) {
-    console.error("Error setting page blocks:", err);
+    handleDbError("setPageBlocks", err);
   }
 }
 
