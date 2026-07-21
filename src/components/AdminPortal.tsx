@@ -268,14 +268,14 @@ export default function AdminPortal({
         fontColor: "#dfe2eb",
         fontFamily: "JetBrains Mono"
       };
-    } else if (preset === 'ocean') {
+    } else if (preset === 'desert') {
       payload = {
-        primaryColor: "#0284c7",
-        bgColor: "#f0f9ff",
-        surfaceColor: "#e0f2fe",
-        accentColor: "#0f766e",
-        fontColor: "#0f172a",
-        fontFamily: "Inter"
+        primaryColor: "#8d532b",
+        bgColor: "#f5e6da",
+        surfaceColor: "#fdf8f4",
+        accentColor: "#b25329",
+        fontColor: "#361e12",
+        fontFamily: "Space Grotesk"
       };
     }
     await onUpdateTheme(payload);
@@ -898,15 +898,15 @@ export default function AdminPortal({
                       </button>
 
                       <button
-                        onClick={() => handleThemePreset('ocean')}
-                        className="py-3 px-3 rounded-xl bg-sky-50 border border-sky-200 hover:border-sky-600 font-bold text-xs flex flex-col items-center gap-1 shadow-sm"
+                        onClick={() => handleThemePreset('desert')}
+                        className="py-3 px-3 rounded-xl bg-[#f5e6da] border border-[#d8b8a0] hover:border-[#8d532b] font-bold text-xs flex flex-col items-center gap-1 shadow-sm cursor-pointer"
                       >
                         <div className="flex gap-1">
-                          <span className="w-3 h-3 rounded-full bg-[#0284c7]" />
-                          <span className="w-3 h-3 rounded-full bg-[#f0f9ff]" />
-                          <span className="w-3 h-3 rounded-full bg-[#0f766e]" />
+                          <span className="w-3 h-3 rounded-full bg-[#8d532b]" />
+                          <span className="w-3 h-3 rounded-full bg-[#fdf8f4]" />
+                          <span className="w-3 h-3 rounded-full bg-[#b25329]" />
                         </div>
-                        <span className="mt-1 text-sky-900 text-[10px] font-mono">Ocean Breeze</span>
+                        <span className="mt-1 text-[#361e12] text-[10px] font-mono">Desert Warmth</span>
                       </button>
                     </div>
                   </div>
