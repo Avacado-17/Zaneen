@@ -84,11 +84,11 @@ export default function AdminPortal({
   const [accessRequests, setAccessRequests] = useState<any[]>([]);
   const [inviteEmail, setInviteEmail] = useState("");
   const [permissionError, setPermissionError] = useState("");
-  
+  const [permissionSuccess, setPermissionSuccess] = useState("");
+
   // Page layout builder states
   const [layoutViewMode, setLayoutViewMode] = useState<'editor' | 'preview'>('editor');
   const [layoutSaveNotice, setLayoutSaveNotice] = useState<string>("");
-  const [permissionSuccess, setPermissionSuccess] = useState("");
 
   const fetchPermissions = async () => {
     try {
@@ -894,7 +894,7 @@ export default function AdminPortal({
                           <span className="w-3 h-3 rounded-full bg-[#10141a]" />
                           <span className="w-3 h-3 rounded-full bg-[#9089d3]" />
                         </div>
-                        <span className="mt-1 text-stone-200 text-[10px] font-mono">Lumina Void</span>
+                        <span className="mt-1 text-stone-200 text-[10px] font-mono">Lumina Neon</span>
                       </button>
 
                       <button
@@ -1222,6 +1222,7 @@ export default function AdminPortal({
               </div>
             </motion.div>
           )}
+
           {activeTab === 'layout' && (() => {
             const currentBlocks = Array.isArray(pageBlocks) 
               ? [...pageBlocks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) 
@@ -1235,6 +1236,7 @@ export default function AdminPortal({
                 image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80',
                 divider: '---'
               };
+
               const newBlock: PageBlock = {
                 id: `block-${Math.random().toString(36).substr(2, 9)}`,
                 type,
@@ -1253,7 +1255,7 @@ export default function AdminPortal({
 
               const updated = [...currentBlocks];
               const tempOrder = updated[index].order;
-               updated[index].order = updated[targetIndex].order;
+              updated[index].order = updated[targetIndex].order;
               updated[targetIndex].order = tempOrder;
 
               onUpdatePageBlocks(updated);
@@ -1273,7 +1275,7 @@ export default function AdminPortal({
 
             const handleDeleteBlock = (id: string) => {
               const updated = currentBlocks.filter(b => b.id !== id);
-               onUpdatePageBlocks(updated);
+              onUpdatePageBlocks(updated);
               setLayoutSaveNotice("Block removed.");
               setTimeout(() => setLayoutSaveNotice(""), 3000);
             };
@@ -1293,7 +1295,7 @@ export default function AdminPortal({
                   order: 1
                 },
                 {
-                   id: "block-welcome-3",
+                  id: "block-welcome-3",
                   type: "callout",
                   content: "📢 Spring 2026 Admissions Open: Early bird candidate submissions receive expedited GPA verification.",
                   order: 2
@@ -1311,14 +1313,14 @@ export default function AdminPortal({
             };
 
             return (
-            <motion.div
-              key="layout"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="flex flex-col gap-6"
-            >
-               {/* Layout Controls Bar */}
+              <motion.div
+                key="layout"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="flex flex-col gap-6"
+              >
+                {/* Layout Controls Bar */}
                 <div className="clay-card p-6 border border-outline-variant bg-surface rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div>
                     <div className="flex items-center gap-2">
@@ -1327,10 +1329,14 @@ export default function AdminPortal({
                     </div>
                     <p className="text-xs text-on-surface-variant mt-1 font-medium">
                       Configure visual sections displayed on the student portal home page.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setLayoutViewMode('editor')}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    {/* View mode toggle */}
+                    <div className="flex bg-surface-container-high p-1 rounded-xl border border-outline-variant">
+                      <button
+                        onClick={() => setLayoutViewMode('editor')}
                         className={`px-3 py-1.5 text-xs font-bold font-mono rounded-lg transition-all cursor-pointer ${
                           layoutViewMode === 'editor' 
                             ? 'bg-primary text-on-primary shadow-sm' 
@@ -1341,16 +1347,17 @@ export default function AdminPortal({
                       </button>
                       <button
                         onClick={() => setLayoutViewMode('preview')}
-                  className={`px-3 py-1.5 text-xs font-bold font-mono rounded-lg transition-all cursor-pointer ${
+                        className={`px-3 py-1.5 text-xs font-bold font-mono rounded-lg transition-all cursor-pointer ${
                           layoutViewMode === 'preview' 
                             ? 'bg-primary text-on-primary shadow-sm' 
                             : 'text-on-surface-variant hover:text-on-surface'
                         }`}
                       >
                         Live Preview
-                </button>
-              </div>
-              <button
+                      </button>
+                    </div>
+
+                    <button
                       onClick={handleLoadDefaultTemplate}
                       className="px-3 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant rounded-xl text-xs font-bold font-mono transition-all"
                     >
@@ -1369,7 +1376,8 @@ export default function AdminPortal({
                     <span>{layoutSaveNotice}</span>
                   </motion.div>
                 )}
-       {/* Quick Add Bar */}
+
+                {/* Quick Add Bar */}
                 {layoutViewMode === 'editor' && (
                   <div className="clay-card p-4 border border-outline-variant bg-surface-container-low rounded-xl flex flex-wrap items-center justify-between gap-3">
                     <span className="text-xs font-bold font-mono text-on-surface-variant uppercase tracking-wider">
@@ -1389,7 +1397,7 @@ export default function AdminPortal({
                         <Plus className="w-3.5 h-3.5 text-primary" /> Paragraph
                       </button>
                       <button
-                         onClick={() => handleAddBlock('callout')}
+                        onClick={() => handleAddBlock('callout')}
                         className="px-3 py-1.5 bg-surface border border-outline-variant hover:border-primary rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5 text-primary" /> Callout
@@ -1409,11 +1417,11 @@ export default function AdminPortal({
                     </div>
                   </div>
                 )}
-       {/* Main View Area */}
-                {layoutViewMode === 'editor' ? (
 
-              <div className="flex flex-col gap-4">
-                {currentBlocks.length === 0 ? (
+                {/* Main View Area */}
+                {layoutViewMode === 'editor' ? (
+                  <div className="flex flex-col gap-4">
+                    {currentBlocks.length === 0 ? (
                       <div className="clay-card p-12 text-center text-on-surface-variant text-sm font-bold border border-dashed border-outline-variant rounded-2xl flex flex-col items-center gap-3">
                         <Layers className="w-8 h-8 text-primary opacity-60" />
                         <p>No page blocks added yet.</p>
@@ -1426,15 +1434,15 @@ export default function AdminPortal({
                       </div>
                     ) : (
                       currentBlocks.map((block, index) => (
-                  <div key={block.id} className="clay-card p-5 border border-outline-variant bg-surface rounded-2xl flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div key={block.id} className="clay-card p-5 border border-outline-variant bg-surface rounded-2xl flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex justify-between items-center gap-4 flex-wrap border-b border-outline-variant/40 pb-3">
                             <div className="flex items-center gap-3">
                               <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-mono font-bold flex items-center justify-center">
                                 #{index + 1}
                               </span>
-                      <select 
-                        value={block.type}
-                       onChange={(e) => handleUpdateBlockType(block.id, e.target.value as any)}
+                              <select 
+                                value={block.type}
+                                onChange={(e) => handleUpdateBlockType(block.id, e.target.value as any)}
                                 className="clay-input py-1.5 px-3 rounded-lg bg-surface-container-low text-xs font-bold border border-outline-variant/60 focus:outline-none"
                               >
                                 <option value="heading">Heading (Section Title)</option>
@@ -1442,14 +1450,14 @@ export default function AdminPortal({
                                 <option value="callout">Callout (Highlighted Box)</option>
                                 <option value="image">Banner Image (URL)</option>
                                 <option value="divider">Divider Line</option>
-                      </select>
-                    </div>
-                            
-                     <div className="flex items-center gap-1.5">
+                              </select>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
                               <button 
                                 onClick={() => handleMoveBlock(index, 'up')}
-                          disabled={index === 0}
-                          title="Move Up"
+                                disabled={index === 0}
+                                title="Move Up"
                                 className="p-1.5 hover:bg-surface-container-high rounded-lg disabled:opacity-30 border border-outline-variant/40 transition-colors"
                               >
                                 <ArrowUp className="w-4 h-4 text-on-surface" />
@@ -1466,20 +1474,21 @@ export default function AdminPortal({
                                 onClick={() => handleDeleteBlock(block.id)}
                                 title="Delete Block"
                                 className="p-1.5 hover:bg-red-50 text-red-600 rounded-lg border border-red-200 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                    {/* Block input fields */}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Block input fields */}
                           {block.type !== 'divider' && block.type !== 'image' && (
                             <div className="flex flex-col gap-1.5 text-left">
                               <label className="text-[11px] font-bold text-on-surface-variant font-mono">
                                 Block Content:
                               </label>
-                      <textarea
-                        value={block.content}
-                        onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                              <textarea
+                                value={block.content}
+                                onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
                                 placeholder="Enter block content text..."
                                 className="clay-input p-3 rounded-xl bg-surface-container-low text-xs border-none focus:ring-2 focus:ring-primary min-h-[70px] resize-y"
                               />
@@ -1498,8 +1507,8 @@ export default function AdminPortal({
                                   onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
                                   placeholder="https://images.unsplash.com/..."
                                   className="clay-input p-3 rounded-xl bg-surface-container-low text-xs border-none focus:ring-2 focus:ring-primary font-mono"
-                      />
-                    </div>
+                                />
+                              </div>
                               {block.content && (
                                 <div className="h-32 rounded-xl overflow-hidden border border-outline-variant bg-surface-container">
                                   <img 
@@ -1508,29 +1517,29 @@ export default function AdminPortal({
                                     className="w-full h-full object-cover" 
                                     onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                                   />
-                  </div>
-                )}
-              </div>
-            )}
+                                </div>
+                              )}
+                            </div>
+                          )}
 
-            {block.type === 'divider' && (
-              <div className="py-2">
-                <hr className="border-dashed border-outline-variant" />
-              </div>
-            )}
+                          {block.type === 'divider' && (
+                            <div className="py-2">
+                              <hr className="border-dashed border-outline-variant" />
+                            </div>
+                          )}
 
-            {/* Mini visual output preview */}
-            <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/30 text-left">
-              <span className="text-[10px] font-mono text-on-surface-variant font-bold uppercase block mb-1">
-                Student Portal Preview:
-              </span>
-              {block.type === 'heading' && (
-                <h3 className="font-display font-bold text-lg text-on-surface">{block.content || "(Empty Heading)"}</h3>
-              )}
-              {block.type === 'paragraph' && (
-                <p className="text-xs text-on-surface-variant leading-relaxed">{block.content || "(Empty Paragraph)"}</p>
-              )}
-              {block.type === 'callout' && (
+                          {/* Mini visual output preview */}
+                          <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/30 text-left">
+                            <span className="text-[10px] font-mono text-on-surface-variant font-bold uppercase block mb-1">
+                              Student Portal Preview:
+                            </span>
+                            {block.type === 'heading' && (
+                              <h3 className="font-display font-bold text-lg text-on-surface">{block.content || "(Empty Heading)"}</h3>
+                            )}
+                            {block.type === 'paragraph' && (
+                              <p className="text-xs text-on-surface-variant leading-relaxed">{block.content || "(Empty Paragraph)"}</p>
+                            )}
+                            {block.type === 'callout' && (
                               <div className="p-3 bg-surface border-l-4 border-l-primary text-primary font-bold text-xs rounded">
                                 {block.content || "(Empty Callout)"}
                               </div>
@@ -1545,7 +1554,7 @@ export default function AdminPortal({
                         </div>
                       ))
                     )}
-                 </div>
+                  </div>
                 ) : (
                   /* Full Live Preview Mode */
                   <div className="clay-card p-8 border border-outline-variant bg-background rounded-2xl text-left flex flex-col gap-8 shadow-inner">
