@@ -134,10 +134,10 @@ export default function StudentPortal({ scholarships, pageBlocks, onApply, userS
         </div>
         
         <div className="hidden md:flex items-center gap-8">
-          <a href="#explorer" className="text-primary font-bold border-b-2 border-primary pb-0.5 transition-all">Explorer</a>
-          <a href="#mission" className="text-on-surface-variant hover:text-primary transition-all">About</a>
-          <a href="#molder" className="text-on-surface-variant hover:text-primary transition-all">My Profile</a>
-          <a href="#works" className="text-on-surface-variant hover:text-primary transition-all">How it Works</a>
+          <a href="#works" className="text-primary font-bold border-b-2 border-primary pb-0.5 transition-all">How it Works</a>
+          <a href="#molder" className="text-on-surface-variant hover:text-primary transition-all font-medium">My Profile</a>
+          <a href="#explorer" className="text-on-surface-variant hover:text-primary transition-all font-medium">Explorer</a>
+          <a href="#mission" className="text-on-surface-variant hover:text-primary transition-all font-medium">About</a>
         </div>
 
         <div className="flex items-center gap-4">
@@ -287,6 +287,60 @@ export default function StudentPortal({ scholarships, pageBlocks, onApply, userS
           </div>
         </div>
       </section>
+      <section className="py-20 bg-surface px-4 md:px-12 border-b border-outline-variant" id="works">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="text-xs font-mono font-bold tracking-wider text-primary uppercase bg-primary/10 px-3 py-1 rounded-full">
+              Process Overview
+            </span>
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-on-surface mt-3 mb-3">
+              How It Works
+            </h2>
+            <p className="font-body-lg text-lg text-on-surface-variant max-w-2xl mx-auto">
+              A seamless, three-step process designed to get you from searching to applying with confidence.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Step 1 */}
+            <div className="clay-card p-8 flex flex-col items-center text-center border border-outline-variant bg-surface">
+              <div className="w-16 h-16 rounded-full clay-card flex items-center justify-center text-primary mb-6 bg-surface-container">
+                <Search className="w-8 h-8" />
+              </div>
+              <h3 className="font-display text-xl font-bold text-on-surface mb-3">
+                1. Mold Your Profile
+              </h3>
+              <p className="text-sm text-on-surface-variant leading-relaxed">
+                Input your interests, academic history, and goals into our soft-touch forms to create a personalized foundation.
+              </p>
+            </div>
+            {/* Step 2 */}
+            <div className="clay-card p-8 flex flex-col items-center text-center border border-outline-variant bg-surface">
+              <div className="w-16 h-16 rounded-full clay-card flex items-center justify-center text-primary mb-6 bg-surface-container">
+                <Sparkles className="w-8 h-8" />
+              </div>
+              <h3 className="font-display text-xl font-bold text-on-surface mb-3">
+                2. Discover Matches
+              </h3>
+              <p className="text-sm text-on-surface-variant leading-relaxed">
+                Our intelligent system sifts through thousands of opportunities, presenting only those that fit your unique shape.
+              </p>
+            </div>
+            {/* Step 3 */}
+            <div className="clay-card p-8 flex flex-col items-center text-center border border-outline-variant bg-surface">
+              <div className="w-16 h-16 rounded-full clay-card flex items-center justify-center text-primary mb-6 bg-surface-container">
+                <Send className="w-8 h-8" />
+              </div>
+              <h3 className="font-display text-xl font-bold text-on-surface mb-3">
+                3. Explore
+              </h3>
+              <p className="text-sm text-on-surface-variant leading-relaxed">
+                Track deadlines and submit applications directly through our beautifully structured, stress-free dashboard.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Profile Molder & Intelligent Matching Engine */}
       <section className="py-16 bg-surface-container-low border-y border-outline-variant px-4 md:px-12" id="molder">
@@ -359,10 +413,10 @@ export default function StudentPortal({ scholarships, pageBlocks, onApply, userS
                         setInterest(cat);
                         setProfileMolded(true);
                       }}
-                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all ${
+                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         interest === cat 
-                          ? 'bg-primary text-on-primary border-primary shadow-sm' 
-                          : 'bg-surface hover:bg-surface-container-high text-on-surface-variant border-outline-variant'
+                          ? 'bg-primary text-on-primary border-primary shadow-sm hover:bg-[#8d532b] active:bg-[#a06035]' 
+                          : 'bg-surface hover:bg-[#8d532b] hover:text-white hover:border-[#8d532b] text-on-surface-variant border-outline-variant active:bg-[#a06035]'
                       }`}
                     >
                       {cat}
@@ -454,62 +508,7 @@ export default function StudentPortal({ scholarships, pageBlocks, onApply, userS
           </div>
         </div>
       </section>
-
-      {/* How It Works Section */}
-      <section className="py-20 bg-surface px-4 md:px-12 border-b border-outline-variant" id="works">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-on-surface mb-3">
-              How It Works
-            </h2>
-            <p className="font-body-lg text-lg text-on-surface-variant max-w-2xl mx-auto">
-              A seamless, three-step process designed to get you from searching to applying with confidence.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Step 1 */}
-            <div className="clay-card p-8 flex flex-col items-center text-center border border-outline-variant bg-surface">
-              <div className="w-16 h-16 rounded-full clay-card flex items-center justify-center text-primary mb-6 bg-surface-container">
-                <Search className="w-8 h-8" />
-              </div>
-              <h3 className="font-display text-xl font-bold text-on-surface mb-3">
-                1. Mold Your Profile
-              </h3>
-              <p className="text-sm text-on-surface-variant leading-relaxed">
-                Input your interests, academic history, and goals into our soft-touch forms to create a personalized foundation.
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="clay-card p-8 flex flex-col items-center text-center border border-outline-variant bg-surface">
-              <div className="w-16 h-16 rounded-full clay-card flex items-center justify-center text-primary mb-6 bg-surface-container">
-                <Sparkles className="w-8 h-8" />
-              </div>
-              <h3 className="font-display text-xl font-bold text-on-surface mb-3">
-                2. Discover Matches
-              </h3>
-              <p className="text-sm text-on-surface-variant leading-relaxed">
-                Our intelligent system sifts through thousands of opportunities, presenting only those that fit your unique shape.
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="clay-card p-8 flex flex-col items-center text-center border border-outline-variant bg-surface">
-              <div className="w-16 h-16 rounded-full clay-card flex items-center justify-center text-primary mb-6 bg-surface-container">
-                <Send className="w-8 h-8" />
-              </div>
-              <h3 className="font-display text-xl font-bold text-on-surface mb-3">
-                3. Explore
-              </h3>
-              <p className="text-sm text-on-surface-variant leading-relaxed">
-                Track deadlines and submit applications directly through our beautifully structured, stress-free dashboard.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      
       {/* Footer */}
       <footer className="bg-surface-container-lowest text-on-background py-12 px-4 md:px-12 border-t border-outline-variant">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
