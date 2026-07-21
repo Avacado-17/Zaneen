@@ -6,7 +6,7 @@ import {
   TrendingUp, CheckCircle, XCircle, ShieldAlert, FileCode, RefreshCw, Sparkles,
   Lock, Trash2, Eye, Sun, Moon, Volume2, Key, ListFilter, Sliders, Check, EyeOff, LayoutGrid
 } from "lucide-react";
-import { Scholarship, Application, SystemLog, SecurityAlert, AppTheme, UserSession } from "../types.js";
+import { Scholarship, Application, SystemLog, SecurityAlert, AppTheme, UserSession, PageBlock } from "../types.js";
 import ZaneenLogo from "./ZaneenLogo.tsx";
 
 interface AdminPortalProps {
@@ -14,6 +14,7 @@ interface AdminPortalProps {
   applications: Application[];
   logs: SystemLog[];
   alerts: SecurityAlert[];
+  pageBlocks: PageBlock[];
   currentTheme: AppTheme;
   onUpdateTheme: (theme: Partial<AppTheme>) => Promise<void>;
   onCreateScholarship: (scholarship: Partial<Scholarship>) => Promise<void>;
@@ -21,6 +22,7 @@ interface AdminPortalProps {
   onDeleteScholarship: (id: string) => Promise<void>;
   onUpdateApplicationStatus: (id: string, status: 'Approved' | 'Rejected') => Promise<void>;
   onMitigateAlert: (id: string) => Promise<void>;
+  onUpdatePageBlocks: (blocks: PageBlock[]) => Promise<void>;
   mfaEnabled: boolean;
   onToggleMfa: () => void;
   onLogout: () => void;
@@ -33,6 +35,7 @@ export default function AdminPortal({
   applications,
   logs,
   alerts,
+  pageBlocks,
   currentTheme,
   onUpdateTheme,
   onCreateScholarship,
@@ -40,6 +43,7 @@ export default function AdminPortal({
   onDeleteScholarship,
   onUpdateApplicationStatus,
   onMitigateAlert,
+  onUpdatePageBlocks,
   mfaEnabled,
   onToggleMfa,
   onLogout,
@@ -47,7 +51,7 @@ export default function AdminPortal({
   userSession
 }: AdminPortalProps) {
   // Navigation tabs
-  const [activeTab, setActiveTab] = useState<'scholarships' | 'applications' | 'analytics' | 'settings'>('scholarships');
+  const [activeTab, setActiveTab] = useState<'scholarships' | 'applications' | 'analytics' | 'settings' | 'layout'>('scholarships');
   
   // Modals state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -362,6 +366,18 @@ export default function AdminPortal({
             <span>Style & Security</span>
           </button>
 
+          <button 
+            onClick={() => setActiveTab('layout')}
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs font-mono transition-all text-left ${
+              activeTab === 'layout' 
+                ? 'bg-primary text-on-primary shadow-sm' 
+                : 'text-on-surface-variant hover:bg-surface-container-high hover:translate-x-1'
+            }`}
+          >
+            <LayoutGrid className="w-4 h-4" />
+            <span>Page Layout</span>
+          </button>
+
           {onBackToStudent && (
             <button 
               onClick={onBackToStudent}
@@ -497,7 +513,7 @@ export default function AdminPortal({
                     <span className="text-xs font-mono font-bold tracking-wider uppercase">Funds Allocated</span>
                     <DollarSign className="w-5 h-5 text-primary" />
                   </div>
-                  <div className="font-display text-4xl font-bold text-on-surface">${totalFunds.toLocaleString()}</div>
+                  <div className="font-display text-4xl font-bold text-on-surface">PKR {totalFunds.toLocaleString()}</div>
                   <div className="flex items-center gap-1 text-[11px] text-on-surface-variant font-bold font-mono">
                     <Landmark className="w-3.5 h-3.5" />
                     <span>Secure escrow deployment</span>
@@ -551,7 +567,7 @@ export default function AdminPortal({
                               </span>
                             </td>
                             <td className="p-4 text-xs font-mono text-on-surface-variant">{s.deadline}</td>
-                            <td className="p-4 font-mono font-bold text-primary">${s.awardAmount.toLocaleString()}</td>
+                            <td className="p-4 font-mono font-bold text-primary">PKR {s.awardAmount.toLocaleString()}</td>
                             <td className="p-4">
                               <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold inline-flex items-center gap-1.5 ${
                                 s.status === 'Active' 
@@ -647,7 +663,7 @@ export default function AdminPortal({
                           <div className="grid grid-cols-3 gap-4 p-3 bg-surface-container-low rounded-xl text-xs border border-outline-variant/20">
                             <div>
                               <span className="text-on-surface-variant block">Academic GPA</span>
-                              <b className="font-mono text-on-surface text-sm">{app.gpa} / 4.0</b>
+                              <b className="font-mono text-on-surface text-sm">{app.gpa}%</b>
                             </div>
                             <div>
                               <span className="text-on-surface-variant block">Household Income</span>
@@ -701,7 +717,7 @@ export default function AdminPortal({
                     <div>
                       <span className="font-bold text-on-surface block mb-1">Automatic Compliance Checks:</span>
                       <ul className="list-disc pl-4 space-y-1">
-                        <li>Verified Cumulative GPA must be above 3.5.</li>
+                        <li>Verified Cumulative GPA must be above 85.0%.</li>
                         <li>Socioeconomic parameter scaling applied dynamically.</li>
                         <li>Essay content scanned for cross-site script validation hashes.</li>
                       </ul>
@@ -1199,6 +1215,102 @@ export default function AdminPortal({
               </div>
             </motion.div>
           )}
+          {activeTab === 'layout' && (
+            <motion.div
+              key="layout"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex flex-col gap-6"
+            >
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="text-left">
+                  <h2 className="font-display text-2xl font-bold text-on-surface">Page Layout Builder</h2>
+                  <p className="text-sm text-on-surface-variant font-medium mt-1">
+                    Drag, drop, and edit content blocks for the student portal.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    const newBlock: import('../types.js').PageBlock = {
+                      id: `block-${Math.random().toString(36).substr(2, 9)}`,
+                      type: 'paragraph',
+                      content: 'New paragraph block',
+                      order: pageBlocks.length
+                    };
+                    onUpdatePageBlocks([...pageBlocks, newBlock]);
+                  }}
+                  className="clay-btn-primary px-4 py-2 text-xs font-bold flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" /> Add Block
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                {pageBlocks.sort((a, b) => a.order - b.order).map((block, index) => (
+                  <div key={block.id} className="clay-card p-4 border bg-surface flex flex-col gap-3">
+                    <div className="flex justify-between items-center">
+                      <select 
+                        value={block.type}
+                        onChange={(e) => {
+                          const updated = pageBlocks.map(b => b.id === block.id ? { ...b, type: e.target.value as any } : b);
+                          onUpdatePageBlocks(updated);
+                        }}
+                        className="clay-input p-2 rounded bg-surface-container-low text-xs border-none font-bold"
+                      >
+                        <option value="heading">Heading</option>
+                        <option value="paragraph">Paragraph</option>
+                        <option value="callout">Callout</option>
+                        <option value="divider">Divider</option>
+                      </select>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => {
+                            if (index > 0) {
+                              const updated = [...pageBlocks];
+                              const temp = updated[index].order;
+                              updated[index].order = updated[index - 1].order;
+                              updated[index - 1].order = temp;
+                              onUpdatePageBlocks(updated);
+                            }
+                          }}
+                          disabled={index === 0}
+                          className="p-1 hover:bg-surface-container-high rounded disabled:opacity-30"
+                        >
+                          <TrendingUp className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => {
+                            const updated = pageBlocks.filter(b => b.id !== block.id);
+                            onUpdatePageBlocks(updated);
+                          }}
+                          className="p-1 hover:bg-red-500/20 text-red-500 rounded"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    {block.type !== 'divider' && (
+                      <textarea
+                        value={block.content}
+                        onChange={(e) => {
+                          const updated = pageBlocks.map(b => b.id === block.id ? { ...b, content: e.target.value } : b);
+                          onUpdatePageBlocks(updated);
+                        }}
+                        placeholder="Enter block content..."
+                        className="clay-input p-3 rounded-xl bg-surface-container-low text-xs border-none focus:ring-2 focus:ring-primary min-h-[80px]"
+                      />
+                    )}
+                  </div>
+                ))}
+                {pageBlocks.length === 0 && (
+                  <div className="p-8 text-center text-on-surface-variant text-sm font-bold border border-dashed border-outline-variant rounded-2xl">
+                    No page blocks added yet. Click "Add Block" to create content.
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 
@@ -1240,7 +1352,7 @@ export default function AdminPortal({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-on-surface-variant">Award Amount ($)</label>
+                    <label className="text-xs font-bold text-on-surface-variant">Award Amount (PKR)</label>
                     <input 
                       type="number" 
                       required
