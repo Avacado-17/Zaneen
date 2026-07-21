@@ -4,11 +4,12 @@ import {
   ArrowRight, Play, Search, Filter, Cpu, Award, Users, BookOpen, 
   MapPin, Sparkles, CheckCircle2, AlertCircle, FileText, Send, UserCheck, HelpCircle
 } from "lucide-react";
-import { Scholarship, Application, UserSession } from "../types.js";
+import { Scholarship, Application, UserSession, PageBlock } from "../types.js";
 import ZaneenLogo from "./ZaneenLogo.tsx";
 
 interface StudentPortalProps {
   scholarships: Scholarship[];
+  pageBlocks: PageBlock[];
   onApply: (scholarshipId: string, details: { studentName: string; studentEmail: string; gpa: string; income: string; essay: string }) => Promise<void>;
   userSession: UserSession;
   onOpenLogin: () => void;
@@ -16,9 +17,9 @@ interface StudentPortalProps {
   onNavigateToAdmin?: () => void;
 }
 
-export default function StudentPortal({ scholarships, onApply, userSession, onOpenLogin, onLogout, onNavigateToAdmin }: StudentPortalProps) {
+export default function StudentPortal({ scholarships, pageBlocks, onApply, userSession, onOpenLogin, onLogout, onNavigateToAdmin }: StudentPortalProps) {
   // Profile state for matching
-  const [gpa, setGpa] = useState("3.8");
+  const [gpa, setGpa] = useState("85.0");
   const [income, setIncome] = useState("under_50k");
   const [interest, setInterest] = useState("STEM");
   const [customKeywords, setCustomKeywords] = useState("");
@@ -29,7 +30,7 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
   const [applyName, setApplyName] = useState(userSession.user?.name || "");
   const [applyEmail, setApplyEmail] = useState(userSession.user?.email || "");
   const [studentGpa, setStudentGpa] = useState(gpa);
-  const [studentIncome, setStudentIncome] = useState("$45,000");
+  const [studentIncome, setStudentIncome] = useState("PKR 4,500,000");
   const [applyEssay, setApplyEssay] = useState("");
   const [applySuccess, setApplySuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -69,7 +70,7 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
       score += 30;
     }
     // High GPA preference
-    if (Number(gpa) >= 3.8 && scholarship.awardAmount >= 8000) {
+    if (Number(gpa) >= 85.0 && scholarship.awardAmount >= 8000) {
       score += 15;
     }
     // Match based on custom keywords
@@ -215,7 +216,7 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <a 
               href="#molder" 
-              className="clay-btn-primary px-8 py-4 text-base font-bold flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-lg text-on-primary"
+              className="clay-btn-primary px-8 py-4 text-base font-bold flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-lg text-on-primary hover:!bg-[#D2B48C] active:!bg-[#C19A6B]"
             >
               Start Exploring <ArrowRight className="w-5 h-5" />
             </a>
@@ -228,6 +229,34 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
           </div>
         </div>
       </section>
+
+      {/* Dynamic Page Blocks Section */}
+      {pageBlocks && pageBlocks.length > 0 && (
+        <section className="py-12 px-4 md:px-12 max-w-7xl mx-auto flex flex-col gap-8">
+          {pageBlocks.sort((a, b) => a.order - b.order).map(block => (
+            <div key={block.id} className="w-full text-left">
+              {block.type === 'heading' && (
+                <h2 className="font-display text-3xl sm:text-4xl font-bold text-on-surface">
+                  {block.content}
+                </h2>
+              )}
+              {block.type === 'paragraph' && (
+                <p className="text-lg text-on-surface-variant leading-relaxed">
+                  {block.content}
+                </p>
+              )}
+              {block.type === 'callout' && (
+                <div className="clay-card p-6 border-l-4 border-l-primary bg-surface-container-low text-primary font-bold text-lg">
+                  {block.content}
+                </div>
+              )}
+              {block.type === 'divider' && (
+                <hr className="my-4 border-outline-variant" />
+              )}
+            </div>
+          ))}
+        </section>
+      )}
 
       {/* Our Mission Section */}
       <section className="py-20 px-4 md:px-12 max-w-7xl mx-auto" id="mission">
@@ -277,12 +306,12 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
               </h3>
               
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-bold text-on-surface-variant">Cumulative GPA</label>
+                <label className="text-xs font-bold text-on-surface-variant">Cumulative GPA (%)</label>
                 <div className="flex items-center gap-4">
                   <input 
                     type="range" 
-                    min="2.0" 
-                    max="4.0" 
+                    min="0.0" 
+                    max="100.0" 
                     step="0.1" 
                     value={gpa} 
                     onChange={(e) => {
@@ -291,8 +320,8 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
                     }}
                     className="w-full accent-primary h-2 bg-surface-container-high rounded-full appearance-none cursor-pointer"
                   />
-                  <span className="font-mono font-bold text-primary px-3 py-1 bg-primary/10 rounded-lg min-w-[50px] text-center">
-                    {Number(gpa).toFixed(1)}
+                  <span className="font-mono font-bold text-primary px-3 py-1 bg-primary/10 rounded-lg min-w-[60px] text-center">
+                    {Number(gpa).toFixed(1)}%
                   </span>
                 </div>
               </div>
@@ -307,17 +336,17 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
                   }}
                   className="clay-input p-3 rounded-xl bg-surface-container-low text-sm font-semibold border-none focus:ring-2 focus:ring-primary focus:outline-none"
                 >
-                  <option value="under_30k">Under $30,000 / year</option>
-                  <option value="under_50k">$30,000 - $60,000 / year</option>
-                  <option value="under_100k">$60,000 - $100,000 / year</option>
-                  <option value="above_100k">Above $100,000 / year</option>
+                  <option value="under_30k">Under PKR 3,000,000 / year</option>
+                  <option value="under_50k">PKR 3,000,000 - PKR 6,000,000 / year</option>
+                  <option value="under_100k">PKR 6,000,000 - PKR 10,000,000 / year</option>
+                  <option value="above_100k">Above PKR 10,000,000 / year</option>
                 </select>
               </div>
 
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-on-surface-variant">Academic Area of Interest</label>
-                <div className="grid grid-cols-2 gap-2 mt-1">
-                  {["STEM", "Arts", "Humanities", "Environment"].map((cat) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mt-1">
+                  {["STEM", "Arts", "Humanities", "Environment", "Medicine", "Law", "Financial Aid"].map((cat) => (
                     <button
                       key={cat}
                       type="button"
@@ -397,7 +426,7 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
                         </p>
                         <div className="flex gap-4 mt-3 text-xs font-mono text-on-surface-variant">
                           <span>Deadline: <b>{scholarship.deadline}</b></span>
-                          <span>Value: <b className="text-primary">${scholarship.awardAmount.toLocaleString()}</b></span>
+                          <span>Value: <b className="text-primary">PKR {scholarship.awardAmount.toLocaleString()}</b></span>
                         </div>
                       </div>
 
@@ -410,7 +439,7 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
                         className="clay-btn-primary px-4 py-2.5 text-xs font-bold flex-shrink-0 cursor-pointer text-on-primary"
                         aria-label={`Apply to ${scholarship.title}`}
                       >
-                        Submit with Ease
+                        Explore
                       </button>
                     </motion.div>
                   );
@@ -466,7 +495,7 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
                 <Send className="w-8 h-8" />
               </div>
               <h3 className="font-display text-xl font-bold text-on-surface mb-3">
-                3. Submit with Ease
+                3. Explore
               </h3>
               <p className="text-sm text-on-surface-variant leading-relaxed">
                 Track deadlines and submit applications directly through our beautifully structured, stress-free dashboard.
@@ -512,10 +541,10 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
               </button>
 
               <h3 className="font-display text-xl font-bold text-on-surface mb-1 text-left">
-                Submit with Ease
+                Explore
               </h3>
               <p className="text-xs text-on-surface-variant mb-6 text-left">
-                Apply directly to <b>{selectedScholarship.title}</b>. Value: <span className="text-primary font-bold">${selectedScholarship.awardAmount.toLocaleString()}</span>
+                Apply directly to <b>{selectedScholarship.title}</b>. Value: <span className="text-primary font-bold">PKR {selectedScholarship.awardAmount.toLocaleString()}</span>
               </p>
 
               {applySuccess ? (
@@ -561,7 +590,7 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
                         required
                         value={studentGpa}
                         onChange={(e) => setStudentGpa(e.target.value)}
-                        placeholder="3.8"
+                        placeholder="85.0%"
                         className="clay-input p-3 rounded-xl bg-surface-container-low text-xs border-none focus:ring-2 focus:ring-primary font-mono"
                       />
                     </div>
@@ -572,7 +601,7 @@ export default function StudentPortal({ scholarships, onApply, userSession, onOp
                         required
                         value={studentIncome}
                         onChange={(e) => setStudentIncome(e.target.value)}
-                        placeholder="$45,000"
+                        placeholder="PKR 4,500,000"
                         className="clay-input p-3 rounded-xl bg-surface-container-low text-xs border-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
