@@ -20,7 +20,7 @@ interface StudentPortalProps {
 export default function StudentPortal({ scholarships, pageBlocks, onApply, userSession, onOpenLogin, onLogout, onNavigateToAdmin }: StudentPortalProps) {
   // Profile state for matching
   const [gpa, setGpa] = useState("85.0");
-  const [income, setIncome] = useState("under_50k");
+  const [income, setIncome] = useState("PKR 4,500,000")
   const [interest, setInterest] = useState("STEM");
   const [customKeywords, setCustomKeywords] = useState("");
   const [profileMolded, setProfileMolded] = useState(false);
@@ -387,19 +387,16 @@ export default function StudentPortal({ scholarships, pageBlocks, onApply, userS
 
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-bold text-on-surface-variant">Annual Household Income</label>
-                <select 
+                <input 
+                  type="text"
                   value={income}
                   onChange={(e) => {
                     setIncome(e.target.value);
                     setProfileMolded(true);
                   }}
-                  className="clay-input p-3 rounded-xl bg-surface-container-low text-sm font-semibold border-none focus:ring-2 focus:ring-primary focus:outline-none"
-                >
-                  <option value="under_30k">Under PKR 3,000,000 / year</option>
-                  <option value="under_50k">PKR 3,000,000 - PKR 6,000,000 / year</option>
-                  <option value="under_100k">PKR 6,000,000 - PKR 10,000,000 / year</option>
-                  <option value="above_100k">Above PKR 10,000,000 / year</option>
-                </select>
+                  placeholder="e.g. PKR 4,500,000"
+                  className="clay-input p-3 rounded-xl bg-surface-container-low text-xs font-semibold border-none focus:ring-2 focus:ring-primary focus:outline-none"
+                />
               </div>
 
               <div className="flex flex-col gap-1">
@@ -493,6 +490,7 @@ export default function StudentPortal({ scholarships, pageBlocks, onApply, userS
                         onClick={() => {
                           setSelectedScholarship(scholarship);
                           setStudentGpa(gpa);
+                          setStudentIncome(income);
                           setApplyEssay("");
                         }}
                         className="clay-btn-primary px-4 py-2.5 text-xs font-bold flex-shrink-0 cursor-pointer text-on-primary"
