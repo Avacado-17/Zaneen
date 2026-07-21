@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
+import { createServer as createViteServer } from "vite";
 import { Scholarship, Application, SystemLog, SecurityAlert, AppTheme, AccessRequest } from "./src/types.js";
 import { initializeApp } from "firebase/app";
 import { 
@@ -116,7 +117,7 @@ let applications: Application[] = [
     appliedDate: "2024-07-14",
     status: "Pending",
     gpa: "3.85",
-    income: "$42,000",
+    income: "PKR 4,200,000",
     essay: "I believe technology should feel like molded clay—highly adaptive, tactile, and user-centric. Winning this grant will allow me to fund my studies in high-performance web engineering."
   },
   {
@@ -128,7 +129,7 @@ let applications: Application[] = [
     appliedDate: "2024-07-12",
     status: "Approved",
     gpa: "3.95",
-    income: "$28,000",
+    income: "PKR 2,800,000",
     essay: "We need more diverse representation in materials science. This scholarship will fund my thesis on clay-embedded nanotech batteries for clean energy storage."
   },
   {
@@ -140,7 +141,7 @@ let applications: Application[] = [
     appliedDate: "2024-07-10",
     status: "Pending",
     gpa: "3.62",
-    income: "$55,000",
+    income: "PKR 5,500,000",
     essay: "Claymorphism is more than a design style; it brings digital elements back into our tactile human space. This grant will help me set up a digital ceramic production workshop."
   }
 ];
@@ -164,6 +165,21 @@ let securityAlerts: SecurityAlert[] = [
     details: "Detected scripted payloads inside applied student essays. Payload disarmed and user access quarantined.",
     severity: "Medium",
     status: "Mitigated"
+  }
+];
+
+let pageBlocks: import('./src/types.js').PageBlock[] = [
+  {
+    id: "block-1",
+    type: "heading",
+    content: "Welcome to Zaneen Portal",
+    order: 0
+  },
+  {
+    id: "block-2",
+    type: "paragraph",
+    content: "Discover, match, and apply for scholarships with Zaneen—a secure, tactile scholarship matching and management suite.",
+    order: 1
   }
 ];
 
@@ -261,6 +277,15 @@ async function seedDatabase() {
         await setDoc(doc(db, "securityAlerts", a.id), a);
       }
       console.log("Seeded security alerts to Firestore.");
+    }
+
+    // 7. Page Blocks
+    const blocksSnap = await getDocs(collection(db, "pageBlocks"));
+    if (blocksSnap.empty) {
+      for (const b of pageBlocks) {
+        await setDoc(doc(db, "pageBlocks", b.id), b);
+      }
+      console.log("Seeded page blocks to Firestore.");
     }
   } catch (error) {
     console.error("Error seeding Firestore database:", error);
@@ -616,6 +641,37 @@ async function updateSecurityAlertStatus(id: string, status: 'Active' | 'Mitigat
   return alert || null;
 }
 
+// Page Blocks Helpers
+async function getPageBlocks(): Promise<import('./src/types.js').PageBlock[]> {
+  if (!db) return pageBlocks;
+  try {
+    const q = query(collection(db, "pageBlocks"), orderBy("order", "asc"));
+    const querySnapshot = await getDocs(q);
+    const list: import('./src/types.js').PageBlock[] = [];
+    querySnapshot.forEach((doc) => {
+      list.push(doc.data() as import('./src/types.js').PageBlock);
+    });
+    if (list.length === 0) return pageBlocks;
+    return list;
+  } catch (err) {
+    console.error("Error getting page blocks:", err);
+    return pageBlocks;
+  }
+}
+
+async function setPageBlocks(blocks: import('./src/types.js').PageBlock[]): Promise<void> {
+  pageBlocks = blocks;
+  if (!db) return;
+  try {
+    // Basic sync: write all
+    for (const b of blocks) {
+      await setDoc(doc(db, "pageBlocks", b.id), b);
+    }
+  } catch (err) {
+    console.error("Error setting page blocks:", err);
+  }
+}
+
 // Helper to push a log (used by middleware or other routines)
 async function addLog(
   activityType: SystemLog['activityType'],
@@ -688,6 +744,12 @@ app.use((req, res, next) => {
 });
 
 // API: Get/Set Theme
+// Direct download route for the source code
+app.get("/api/download-source", (req, res) => {
+  const file = path.join(process.cwd(), "public", "source-code.tar.gz");
+  res.download(file);
+});
+
 app.get("/api/theme", async (req, res) => {
   const theme = await getTheme();
   res.json(theme);
@@ -702,6 +764,23 @@ app.post("/api/theme", async (req, res) => {
     `System color profile updated. Accent: ${theme.accentColor}, DarkMode: ${theme.darkMode}`
   );
   res.json(theme);
+});
+
+// API: Get/Modify Page Blocks
+app.get("/api/page-blocks", async (req, res) => {
+  const blocks = await getPageBlocks();
+  res.json(blocks);
+});
+
+app.post("/api/page-blocks", async (req, res) => {
+  const newBlocks = req.body;
+  await setPageBlocks(newBlocks);
+  await addLog(
+    "DATA_MUTATION",
+    "INFO",
+    `System layout structure updated by admin. Blocks count: ${newBlocks.length}`
+  );
+  res.json({ success: true });
 });
 
 // API: Get/Modify Scholarships
@@ -768,7 +847,7 @@ app.post("/api/applications", async (req, res) => {
     appliedDate: new Date().toISOString().split('T')[0],
     status: "Pending",
     gpa: appBody.gpa || "4.00",
-    income: appBody.income || "$40,000",
+    income: appBody.income || "PKR 4,000,000",
     essay: appBody.essay || ""
   };
   
@@ -790,31 +869,40 @@ app.put("/api/applications/:id", async (req, res) => {
 });
 
 // API: Get logs & security alerts
-app.get("/api/system-records", async (req, res) => {
+app.get("/api/download-source", (req, res) => {
+  const file = path.join(process.cwd(), "public", "source-code.tar.gz");
+  if (fs.existsSync(file)) {
+    res.download(file, "source-code.tar.gz");
+  } else {
+    res.status(404).send("File not found");
+  }
+});
+
+app.get("/api/sys-data", async (req, res) => {
   console.log("Fetching system logs...");
   try {
     const logs = await getSystemLogs();
     console.log("Logs fetched:", logs);
     res.json(logs);
   } catch (err) {
-    console.error("Error in /api/system-records:", err);
+    console.error("Error in /api/sys-data:", err);
     res.status(500).json({ error: "Failed to fetch logs" });
   }
 });
 
-app.get("/api/security-events", async (req, res) => {
+app.get("/api/sec-alerts", async (req, res) => {
   console.log("Fetching security events...");
   try {
     const alerts = await getSecurityAlerts();
     console.log("Security events fetched:", alerts);
     res.json(alerts);
   } catch (err) {
-    console.error("Error in /api/security-events:", err);
+    console.error("Error in /api/sec-alerts:", err);
     res.status(500).json({ error: "Failed to fetch security events" });
   }
 });
 
-app.post("/api/security-events/mitigate/:id", async (req, res) => {
+app.post("/api/sec-alerts/mitigate/:id", async (req, res) => {
   const { id } = req.params;
   const alert = await updateSecurityAlertStatus(id, "Mitigated");
   if (alert) {
@@ -986,21 +1074,19 @@ if (!process.env.VERCEL) {
 }
 
 async function bootstrap() {
-  // if (process.env.NODE_ENV !== "production") {
-  //   const viteModule = "vite";
-  //   const { createServer: createViteServer } = await import(/* @vite-ignore */ viteModule);
-  //   const vite = await createViteServer({
-  //     server: { middlewareMode: true },
-  //     appType: "spa",
-  //   });
-  //   app.use(vite.middlewares);
-  // } else {
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
-  // }
+  }
 
   console.log("Environment variables:", process.env);
 app.listen(3000, "0.0.0.0", () => {
