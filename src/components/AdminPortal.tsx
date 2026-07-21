@@ -4,7 +4,8 @@ import {
   School, ClipboardList, Activity, Settings, Plus, Edit, Save, 
   Search, Filter, Megaphone, FileEdit, DollarSign, Landmark, ArrowUpRight,
   TrendingUp, CheckCircle, XCircle, ShieldAlert, FileCode, RefreshCw, Sparkles,
-  Lock, Trash2, Eye, Sun, Moon, Volume2, Key, ListFilter, Sliders, Check, EyeOff, LayoutGrid
+  Lock, Trash2, Eye, Sun, Moon, Volume2, Key, ListFilter, Sliders, Check, EyeOff, LayoutGrid,
+  ArrowUp, ArrowDown, Image as ImageIcon, Layers
 } from "lucide-react";
 import { Scholarship, Application, SystemLog, SecurityAlert, AppTheme, UserSession, PageBlock } from "../types.js";
 import ZaneenLogo from "./ZaneenLogo.tsx";
@@ -83,6 +84,10 @@ export default function AdminPortal({
   const [accessRequests, setAccessRequests] = useState<any[]>([]);
   const [inviteEmail, setInviteEmail] = useState("");
   const [permissionError, setPermissionError] = useState("");
+  
+  // Page layout builder states
+  const [layoutViewMode, setLayoutViewMode] = useState<'editor' | 'preview'>('editor');
+  const [layoutSaveNotice, setLayoutSaveNotice] = useState<string>("");
   const [permissionSuccess, setPermissionSuccess] = useState("");
 
   const fetchPermissions = async () => {
@@ -436,12 +441,14 @@ export default function AdminPortal({
               {activeTab === 'applications' && "Application Review Deck"}
               {activeTab === 'analytics' && "System Analytics & Security Firewall"}
               {activeTab === 'settings' && "System Styling & Core Configurations"}
+              {activeTab === 'layout' && "Student Page Layout Builder"}
             </h1>
             <p className="font-body-lg text-sm sm:text-base text-on-surface-variant mt-1.5 max-w-2xl">
               {activeTab === 'scholarships' && "Create, update, and deploy financial opportunities to matching student pools."}
               {activeTab === 'applications' && "Review submissions, verify transcript data, and approve candidates with logged compliance hashes."}
               {activeTab === 'analytics' && "Monitor real-time system performance, query throughput, API latencies, and security threats."}
               {activeTab === 'settings' && "Customize brand colors, layout typography, system-wide dark mode, and multi-factor authentication (MFA)."}
+              {activeTab === 'layout' && "Add, edit, reorder, and preview dynamic content blocks deployed directly to the student homepage."}
             </p>
           </div>
 
@@ -1215,7 +1222,95 @@ export default function AdminPortal({
               </div>
             </motion.div>
           )}
-          {activeTab === 'layout' && (
+          {activeTab === 'layout' && (() => {
+            const currentBlocks = Array.isArray(pageBlocks) 
+              ? [...pageBlocks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) 
+              : [];
+
+            const handleAddBlock = (type: 'heading' | 'paragraph' | 'callout' | 'image' | 'divider') => {
+              const defaultContentMap = {
+                heading: 'New Custom Heading',
+                paragraph: 'Write your announcement or descriptive section here.',
+                callout: 'Important Note: Ensure all scholarship application transcripts are verified before submission deadlines.',
+                image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80',
+                divider: '---'
+              };
+              const newBlock: PageBlock = {
+                id: `block-${Math.random().toString(36).substr(2, 9)}`,
+                type,
+                content: defaultContentMap[type],
+                order: currentBlocks.length
+              };
+
+              onUpdatePageBlocks([...currentBlocks, newBlock]);
+              setLayoutSaveNotice("New block added to student portal layout!");
+              setTimeout(() => setLayoutSaveNotice(""), 3000);
+            };
+
+            const handleMoveBlock = (index: number, direction: 'up' | 'down') => {
+              const targetIndex = direction === 'up' ? index - 1 : index + 1;
+              if (targetIndex < 0 || targetIndex >= currentBlocks.length) return;
+
+              const updated = [...currentBlocks];
+              const tempOrder = updated[index].order;
+               updated[index].order = updated[targetIndex].order;
+              updated[targetIndex].order = tempOrder;
+
+              onUpdatePageBlocks(updated);
+              setLayoutSaveNotice("Block order updated!");
+              setTimeout(() => setLayoutSaveNotice(""), 3000);
+            };
+
+            const handleUpdateBlockContent = (id: string, content: string) => {
+              const updated = currentBlocks.map(b => b.id === id ? { ...b, content } : b);
+              onUpdatePageBlocks(updated);
+            };
+
+            const handleUpdateBlockType = (id: string, type: PageBlock['type']) => {
+              const updated = currentBlocks.map(b => b.id === id ? { ...b, type } : b);
+              onUpdatePageBlocks(updated);
+            };
+
+            const handleDeleteBlock = (id: string) => {
+              const updated = currentBlocks.filter(b => b.id !== id);
+               onUpdatePageBlocks(updated);
+              setLayoutSaveNotice("Block removed.");
+              setTimeout(() => setLayoutSaveNotice(""), 3000);
+            };
+
+            const handleLoadDefaultTemplate = () => {
+              const defaultTemplate: PageBlock[] = [
+                {
+                  id: "block-welcome-1",
+                  type: "heading",
+                  content: "Welcome to Zaneen Scholarship Portal",
+                  order: 0
+                },
+                {
+                  id: "block-welcome-2",
+                  type: "paragraph",
+                  content: "Explore financial grants, merit awards, and research fellowships curated for students at Stanford, MIT, and partner institutions worldwide.",
+                  order: 1
+                },
+                {
+                   id: "block-welcome-3",
+                  type: "callout",
+                  content: "📢 Spring 2026 Admissions Open: Early bird candidate submissions receive expedited GPA verification.",
+                  order: 2
+                },
+                {
+                  id: "block-welcome-4",
+                  type: "divider",
+                  content: "---",
+                  order: 3
+                }
+              ];
+              onUpdatePageBlocks(defaultTemplate);
+              setLayoutSaveNotice("Template layout loaded successfully!");
+              setTimeout(() => setLayoutSaveNotice(""), 3000);
+            };
+
+            return (
             <motion.div
               key="layout"
               initial={{ opacity: 0, x: 20 }}
@@ -1223,94 +1318,284 @@ export default function AdminPortal({
               exit={{ opacity: 0, x: -20 }}
               className="flex flex-col gap-6"
             >
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="text-left">
-                  <h2 className="font-display text-2xl font-bold text-on-surface">Page Layout Builder</h2>
-                  <p className="text-sm text-on-surface-variant font-medium mt-1">
-                    Drag, drop, and edit content blocks for the student portal.
+               {/* Layout Controls Bar */}
+                <div className="clay-card p-6 border border-outline-variant bg-surface rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Layers className="w-5 h-5 text-primary" />
+                      <h3 className="font-display font-bold text-lg text-on-surface">Layout Control Deck</h3>
+                    </div>
+                    <p className="text-xs text-on-surface-variant mt-1 font-medium">
+                      Configure visual sections displayed on the student portal home page.
                   </p>
                 </div>
                 <button
-                  onClick={() => {
-                    const newBlock: import('../types.js').PageBlock = {
-                      id: `block-${Math.random().toString(36).substr(2, 9)}`,
-                      type: 'paragraph',
-                      content: 'New paragraph block',
-                      order: pageBlocks.length
-                    };
-                    onUpdatePageBlocks([...pageBlocks, newBlock]);
-                  }}
-                  className="clay-btn-primary px-4 py-2 text-xs font-bold flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" /> Add Block
+                  onClick={() => setLayoutViewMode('editor')}
+                        className={`px-3 py-1.5 text-xs font-bold font-mono rounded-lg transition-all cursor-pointer ${
+                          layoutViewMode === 'editor' 
+                            ? 'bg-primary text-on-primary shadow-sm' 
+                            : 'text-on-surface-variant hover:text-on-surface'
+                        }`}
+                      >
+                        Block Editor
+                      </button>
+                      <button
+                        onClick={() => setLayoutViewMode('preview')}
+                  className={`px-3 py-1.5 text-xs font-bold font-mono rounded-lg transition-all cursor-pointer ${
+                          layoutViewMode === 'preview' 
+                            ? 'bg-primary text-on-primary shadow-sm' 
+                            : 'text-on-surface-variant hover:text-on-surface'
+                        }`}
+                      >
+                        Live Preview
                 </button>
               </div>
+              <button
+                      onClick={handleLoadDefaultTemplate}
+                      className="px-3 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant rounded-xl text-xs font-bold font-mono transition-all"
+                    >
+                      Reset Default Template
+                    </button>
+                  </div>
+                </div>
+
+                {layoutSaveNotice && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-3 bg-emerald-950/40 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-mono font-bold flex items-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    <span>{layoutSaveNotice}</span>
+                  </motion.div>
+                )}
+       {/* Quick Add Bar */}
+                {layoutViewMode === 'editor' && (
+                  <div className="clay-card p-4 border border-outline-variant bg-surface-container-low rounded-xl flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-xs font-bold font-mono text-on-surface-variant uppercase tracking-wider">
+                      Add New Content Block:
+                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        onClick={() => handleAddBlock('heading')}
+                        className="px-3 py-1.5 bg-surface border border-outline-variant hover:border-primary rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-primary" /> Heading
+                      </button>
+                      <button
+                        onClick={() => handleAddBlock('paragraph')}
+                        className="px-3 py-1.5 bg-surface border border-outline-variant hover:border-primary rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-primary" /> Paragraph
+                      </button>
+                      <button
+                         onClick={() => handleAddBlock('callout')}
+                        className="px-3 py-1.5 bg-surface border border-outline-variant hover:border-primary rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-primary" /> Callout
+                      </button>
+                      <button
+                        onClick={() => handleAddBlock('image')}
+                        className="px-3 py-1.5 bg-surface border border-outline-variant hover:border-primary rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <ImageIcon className="w-3.5 h-3.5 text-primary" /> Banner Image
+                      </button>
+                      <button
+                        onClick={() => handleAddBlock('divider')}
+                        className="px-3 py-1.5 bg-surface border border-outline-variant hover:border-primary rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-primary" /> Divider
+                      </button>
+                    </div>
+                  </div>
+                )}
+       {/* Main View Area */}
+                {layoutViewMode === 'editor' ? (
 
               <div className="flex flex-col gap-4">
-                {pageBlocks.sort((a, b) => a.order - b.order).map((block, index) => (
-                  <div key={block.id} className="clay-card p-4 border bg-surface flex flex-col gap-3">
-                    <div className="flex justify-between items-center">
+                {currentBlocks.length === 0 ? (
+                      <div className="clay-card p-12 text-center text-on-surface-variant text-sm font-bold border border-dashed border-outline-variant rounded-2xl flex flex-col items-center gap-3">
+                        <Layers className="w-8 h-8 text-primary opacity-60" />
+                        <p>No page blocks added yet.</p>
+                        <button
+                          onClick={handleLoadDefaultTemplate}
+                          className="px-4 py-2 clay-btn-primary text-xs font-bold"
+                        >
+                          Load Welcome Template
+                        </button>
+                      </div>
+                    ) : (
+                      currentBlocks.map((block, index) => (
+                  <div key={block.id} className="clay-card p-5 border border-outline-variant bg-surface rounded-2xl flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex justify-between items-center gap-4 flex-wrap border-b border-outline-variant/40 pb-3">
+                            <div className="flex items-center gap-3">
+                              <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-mono font-bold flex items-center justify-center">
+                                #{index + 1}
+                              </span>
                       <select 
                         value={block.type}
-                        onChange={(e) => {
-                          const updated = pageBlocks.map(b => b.id === block.id ? { ...b, type: e.target.value as any } : b);
-                          onUpdatePageBlocks(updated);
-                        }}
-                        className="clay-input p-2 rounded bg-surface-container-low text-xs border-none font-bold"
-                      >
-                        <option value="heading">Heading</option>
-                        <option value="paragraph">Paragraph</option>
-                        <option value="callout">Callout</option>
-                        <option value="divider">Divider</option>
+                       onChange={(e) => handleUpdateBlockType(block.id, e.target.value as any)}
+                                className="clay-input py-1.5 px-3 rounded-lg bg-surface-container-low text-xs font-bold border border-outline-variant/60 focus:outline-none"
+                              >
+                                <option value="heading">Heading (Section Title)</option>
+                                <option value="paragraph">Paragraph (Body Text)</option>
+                                <option value="callout">Callout (Highlighted Box)</option>
+                                <option value="image">Banner Image (URL)</option>
+                                <option value="divider">Divider Line</option>
                       </select>
-                      <div className="flex items-center gap-2">
-                        <button 
-                          onClick={() => {
-                            if (index > 0) {
-                              const updated = [...pageBlocks];
-                              const temp = updated[index].order;
-                              updated[index].order = updated[index - 1].order;
-                              updated[index - 1].order = temp;
-                              onUpdatePageBlocks(updated);
-                            }
-                          }}
+                    </div>
+                            
+                     <div className="flex items-center gap-1.5">
+                              <button 
+                                onClick={() => handleMoveBlock(index, 'up')}
                           disabled={index === 0}
-                          className="p-1 hover:bg-surface-container-high rounded disabled:opacity-30"
-                        >
-                          <TrendingUp className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => {
-                            const updated = pageBlocks.filter(b => b.id !== block.id);
-                            onUpdatePageBlocks(updated);
-                          }}
-                          className="p-1 hover:bg-red-500/20 text-red-500 rounded"
+                          title="Move Up"
+                                className="p-1.5 hover:bg-surface-container-high rounded-lg disabled:opacity-30 border border-outline-variant/40 transition-colors"
+                              >
+                                <ArrowUp className="w-4 h-4 text-on-surface" />
+                              </button>
+                              <button 
+                                onClick={() => handleMoveBlock(index, 'down')}
+                                disabled={index === currentBlocks.length - 1}
+                                title="Move Down"
+                                className="p-1.5 hover:bg-surface-container-high rounded-lg disabled:opacity-30 border border-outline-variant/40 transition-colors"
+                              >
+                                <ArrowDown className="w-4 h-4 text-on-surface" />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteBlock(block.id)}
+                                title="Delete Block"
+                                className="p-1.5 hover:bg-red-50 text-red-600 rounded-lg border border-red-200 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
-                    {block.type !== 'divider' && (
+                    {/* Block input fields */}
+                          {block.type !== 'divider' && block.type !== 'image' && (
+                            <div className="flex flex-col gap-1.5 text-left">
+                              <label className="text-[11px] font-bold text-on-surface-variant font-mono">
+                                Block Content:
+                              </label>
                       <textarea
                         value={block.content}
-                        onChange={(e) => {
-                          const updated = pageBlocks.map(b => b.id === block.id ? { ...b, content: e.target.value } : b);
-                          onUpdatePageBlocks(updated);
-                        }}
-                        placeholder="Enter block content..."
-                        className="clay-input p-3 rounded-xl bg-surface-container-low text-xs border-none focus:ring-2 focus:ring-primary min-h-[80px]"
+                        onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                                placeholder="Enter block content text..."
+                                className="clay-input p-3 rounded-xl bg-surface-container-low text-xs border-none focus:ring-2 focus:ring-primary min-h-[70px] resize-y"
+                              />
+                            </div>
+                          )}
+
+                          {block.type === 'image' && (
+                            <div className="flex flex-col gap-3 text-left">
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[11px] font-bold text-on-surface-variant font-mono">
+                                  Banner Image URL:
+                                </label>
+                                <input
+                                  type="text"
+                                  value={block.content}
+                                  onChange={(e) => handleUpdateBlockContent(block.id, e.target.value)}
+                                  placeholder="https://images.unsplash.com/..."
+                                  className="clay-input p-3 rounded-xl bg-surface-container-low text-xs border-none focus:ring-2 focus:ring-primary font-mono"
                       />
-                    )}
-                  </div>
-                ))}
-                {pageBlocks.length === 0 && (
-                  <div className="p-8 text-center text-on-surface-variant text-sm font-bold border border-dashed border-outline-variant rounded-2xl">
-                    No page blocks added yet. Click "Add Block" to create content.
+                    </div>
+                              {block.content && (
+                                <div className="h-32 rounded-xl overflow-hidden border border-outline-variant bg-surface-container">
+                                  <img 
+                                    src={block.content} 
+                                    alt="Block Preview" 
+                                    className="w-full h-full object-cover" 
+                                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                                  />
                   </div>
                 )}
               </div>
-            </motion.div>
-          )}
+            )}
+
+            {block.type === 'divider' && (
+              <div className="py-2">
+                <hr className="border-dashed border-outline-variant" />
+              </div>
+            )}
+
+            {/* Mini visual output preview */}
+            <div className="p-3 bg-surface-container-low rounded-xl border border-outline-variant/30 text-left">
+              <span className="text-[10px] font-mono text-on-surface-variant font-bold uppercase block mb-1">
+                Student Portal Preview:
+              </span>
+              {block.type === 'heading' && (
+                <h3 className="font-display font-bold text-lg text-on-surface">{block.content || "(Empty Heading)"}</h3>
+              )}
+              {block.type === 'paragraph' && (
+                <p className="text-xs text-on-surface-variant leading-relaxed">{block.content || "(Empty Paragraph)"}</p>
+              )}
+              {block.type === 'callout' && (
+                              <div className="p-3 bg-surface border-l-4 border-l-primary text-primary font-bold text-xs rounded">
+                                {block.content || "(Empty Callout)"}
+                              </div>
+                            )}
+                            {block.type === 'image' && (
+                              <p className="text-xs font-mono text-on-surface-variant truncate">🖼️ Image: {block.content}</p>
+                            )}
+                            {block.type === 'divider' && (
+                              <hr className="my-1 border-outline-variant" />
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                 </div>
+                ) : (
+                  /* Full Live Preview Mode */
+                  <div className="clay-card p-8 border border-outline-variant bg-background rounded-2xl text-left flex flex-col gap-8 shadow-inner">
+                    <div className="flex justify-between items-center border-b border-outline-variant pb-4">
+                      <span className="text-xs font-mono font-bold text-primary uppercase tracking-widest flex items-center gap-1.5">
+                        <Eye className="w-4 h-4" /> Live Student Homepage Layout
+                      </span>
+                      <span className="text-[10px] font-mono text-on-surface-variant bg-surface px-3 py-1 rounded-full border border-outline-variant">
+                        {currentBlocks.length} Blocks Rendered
+                      </span>
+                    </div>
+
+                    {currentBlocks.length === 0 ? (
+                      <p className="text-xs font-mono text-on-surface-variant italic py-8 text-center">
+                        No layout blocks present. Add blocks in Editor Mode to see preview.
+                      </p>
+                    ) : (
+                      currentBlocks.map((block) => (
+                        <div key={block.id} className="w-full">
+                          {block.type === 'heading' && (
+                            <h2 className="font-display text-3xl font-bold text-on-surface">
+                              {block.content}
+                            </h2>
+                          )}
+                          {block.type === 'paragraph' && (
+                            <p className="text-base text-on-surface-variant leading-relaxed">
+                              {block.content}
+                            </p>
+                          )}
+                          {block.type === 'callout' && (
+                            <div className="clay-card p-5 border-l-4 border-l-primary bg-surface-container-low text-primary font-bold text-base rounded-xl">
+                              {block.content}
+                            </div>
+                          )}
+                          {block.type === 'image' && (
+                            <div className="clay-card p-2 border border-outline-variant rounded-2xl overflow-hidden bg-surface">
+                              <img src={block.content} alt="Portal Banner" className="w-full h-64 object-cover rounded-xl" />
+                            </div>
+                          )}
+                          {block.type === 'divider' && (
+                            <hr className="my-2 border-outline-variant" />
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </motion.div>
+            );
+          })()}
         </AnimatePresence>
       </main>
 
