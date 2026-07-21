@@ -233,7 +233,7 @@ export default function StudentPortal({ scholarships, pageBlocks, onApply, userS
       {/* Dynamic Page Blocks Section */}
       {pageBlocks && pageBlocks.length > 0 && (
         <section className="py-12 px-4 md:px-12 max-w-7xl mx-auto flex flex-col gap-8">
-          {pageBlocks.sort((a, b) => a.order - b.order).map(block => (
+          {[...pageBlocks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)).map(block => (
             <div key={block.id} className="w-full text-left">
               {block.type === 'heading' && (
                 <h2 className="font-display text-3xl sm:text-4xl font-bold text-on-surface">
@@ -246,8 +246,13 @@ export default function StudentPortal({ scholarships, pageBlocks, onApply, userS
                 </p>
               )}
               {block.type === 'callout' && (
-                <div className="clay-card p-6 border-l-4 border-l-primary bg-surface-container-low text-primary font-bold text-lg">
+                <div className="clay-card p-6 border-l-4 border-l-primary bg-surface-container-low text-primary font-bold text-lg rounded-xl">
                   {block.content}
+                </div>
+              )}
+              {block.type === 'image' && (
+                <div className="clay-card p-2 border border-outline-variant rounded-2xl overflow-hidden bg-surface">
+                  <img src={block.content} alt="Portal Banner" className="w-full h-64 sm:h-80 object-cover rounded-xl" />
                 </div>
               )}
               {block.type === 'divider' && (
